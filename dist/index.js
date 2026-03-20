@@ -27288,6 +27288,16 @@ class StripeClient {
     this.timeout = timeout * 1000;
   }
 
+  /**
+   * Flatten metadata into Stripe's bracket notation, coercing values to strings.
+   */
+  static applyMetadata(params, metadata) {
+    if (!metadata) return
+    for (const [k, v] of Object.entries(metadata)) {
+      params[`metadata[${k}]`] = String(v);
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Payment Intents
   // ---------------------------------------------------------------------------
@@ -27298,11 +27308,7 @@ class StripeClient {
     const params = { amount: String(amount), currency };
     if (customer) params.customer = customer;
     if (description) params.description = description;
-    if (metadata) {
-      for (const [k, v] of Object.entries(metadata)) {
-        params[`metadata[${k}]`] = v;
-      }
-    }
+    StripeClient.applyMetadata(params, metadata);
 
     return this.request('POST', '/v1/payment_intents', params)
   }
@@ -27314,8 +27320,7 @@ class StripeClient {
 
   async confirmPayment(paymentId, { paymentMethod } = {}) {
     if (!paymentId) throw new StripeError('payment-id is required', { code: 'MISSING_PAYMENT_ID' })
-    const params = {};
-    if (paymentMethod) params.payment_method = paymentMethod;
+    const params = paymentMethod ? { payment_method: paymentMethod } : undefined;
     return this.request(
       'POST',
       `/v1/payment_intents/${encodeURIComponent(paymentId)}/confirm`,
@@ -27325,8 +27330,8 @@ class StripeClient {
 
   async capturePayment(paymentId, { amountToCapture } = {}) {
     if (!paymentId) throw new StripeError('payment-id is required', { code: 'MISSING_PAYMENT_ID' })
-    const params = {};
-    if (amountToCapture != null) params.amount_to_capture = String(amountToCapture);
+    const params =
+      amountToCapture != null ? { amount_to_capture: String(amountToCapture) } : undefined;
     return this.request(
       'POST',
       `/v1/payment_intents/${encodeURIComponent(paymentId)}/capture`,
@@ -27355,11 +27360,7 @@ class StripeClient {
     if (email) params.email = email;
     if (name) params.name = name;
     if (description) params.description = description;
-    if (metadata) {
-      for (const [k, v] of Object.entries(metadata)) {
-        params[`metadata[${k}]`] = v;
-      }
-    }
+    StripeClient.applyMetadata(params, metadata);
     return this.request('POST', '/v1/customers', params)
   }
 
@@ -27376,11 +27377,7 @@ class StripeClient {
     if (email) params.email = email;
     if (name) params.name = name;
     if (description) params.description = description;
-    if (metadata) {
-      for (const [k, v] of Object.entries(metadata)) {
-        params[`metadata[${k}]`] = v;
-      }
-    }
+    StripeClient.applyMetadata(params, metadata);
     return this.request('POST', `/v1/customers/${encodeURIComponent(customerId)}`, params)
   }
 
@@ -27420,11 +27417,7 @@ class StripeClient {
     if (!name) throw new StripeError('name is required', { code: 'MISSING_NAME' })
     const params = { name };
     if (description) params.description = description;
-    if (metadata) {
-      for (const [k, v] of Object.entries(metadata)) {
-        params[`metadata[${k}]`] = v;
-      }
-    }
+    StripeClient.applyMetadata(params, metadata);
     return this.request('POST', '/v1/products', params)
   }
 
@@ -27474,11 +27467,7 @@ class StripeClient {
     if (!customer) throw new StripeError('customer-id is required', { code: 'MISSING_CUSTOMER_ID' })
     if (!price) throw new StripeError('price-id is required', { code: 'MISSING_PRICE_ID' })
     const params = { customer, 'items[0][price]': price };
-    if (metadata) {
-      for (const [k, v] of Object.entries(metadata)) {
-        params[`metadata[${k}]`] = v;
-      }
-    }
+    StripeClient.applyMetadata(params, metadata);
     return this.request('POST', '/v1/subscriptions', params)
   }
 
@@ -27510,11 +27499,7 @@ class StripeClient {
     if (!customer) throw new StripeError('customer-id is required', { code: 'MISSING_CUSTOMER_ID' })
     const params = { customer };
     if (description) params.description = description;
-    if (metadata) {
-      for (const [k, v] of Object.entries(metadata)) {
-        params[`metadata[${k}]`] = v;
-      }
-    }
+    StripeClient.applyMetadata(params, metadata);
     return this.request('POST', '/v1/invoices', params)
   }
 
