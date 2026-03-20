@@ -49,6 +49,12 @@ const COMMANDS = {
   'create-transfer': runCreateTransfer,
   'get-transfer': runGetTransfer,
   'list-transfers': runListTransfers,
+  // Disputes
+  'get-dispute': runGetDispute,
+  'list-disputes': runListDisputes,
+  // Events
+  'get-event': runGetEvent,
+  'list-events': runListEvents,
 }
 
 export async function run() {
@@ -343,6 +349,32 @@ async function runGetTransfer(client) {
 async function runListTransfers(client) {
   return client.listTransfers({
     destination: optionalInput('destination'),
+    limit: optionalNumber('limit'),
+  })
+}
+
+// -- Disputes -----------------------------------------------------------------
+
+async function runGetDispute(client) {
+  return client.getDispute(core.getInput('dispute-id', { required: true }))
+}
+
+async function runListDisputes(client) {
+  return client.listDisputes({
+    paymentIntent: optionalInput('payment-id'),
+    limit: optionalNumber('limit'),
+  })
+}
+
+// -- Events -------------------------------------------------------------------
+
+async function runGetEvent(client) {
+  return client.getEvent(core.getInput('event-id', { required: true }))
+}
+
+async function runListEvents(client) {
+  return client.listEvents({
+    type: optionalInput('event-type'),
     limit: optionalNumber('limit'),
   })
 }

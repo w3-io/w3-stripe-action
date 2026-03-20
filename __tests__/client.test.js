@@ -308,6 +308,50 @@ describe('StripeClient', () => {
     })
   })
 
+  // -- Disputes ---------------------------------------------------------------
+
+  describe('disputes', () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+
+    test('getDispute', async () => {
+      mockOk({ id: 'dp_1', status: 'needs_response' })
+      await c.getDispute('dp_1')
+      expect(mockFetch.mock.calls[0][0]).toContain('/v1/disputes/dp_1')
+    })
+
+    test('throws without id', async () => {
+      await expect(c.getDispute('')).rejects.toThrow('dispute-id is required')
+    })
+
+    test('listDisputes', async () => {
+      mockOk({ data: [] })
+      await c.listDisputes({ paymentIntent: 'pi_1' })
+      expect(mockFetch.mock.calls[0][0]).toContain('payment_intent=pi_1')
+    })
+  })
+
+  // -- Events -----------------------------------------------------------------
+
+  describe('events', () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+
+    test('getEvent', async () => {
+      mockOk({ id: 'evt_1', type: 'payment_intent.succeeded' })
+      await c.getEvent('evt_1')
+      expect(mockFetch.mock.calls[0][0]).toContain('/v1/events/evt_1')
+    })
+
+    test('throws without id', async () => {
+      await expect(c.getEvent('')).rejects.toThrow('event-id is required')
+    })
+
+    test('listEvents with type filter', async () => {
+      mockOk({ data: [] })
+      await c.listEvents({ type: 'payment_intent.succeeded' })
+      expect(mockFetch.mock.calls[0][0]).toContain('type=payment_intent.succeeded')
+    })
+  })
+
   // -- Error handling ---------------------------------------------------------
 
   describe('errors', () => {

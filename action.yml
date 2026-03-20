@@ -96,6 +96,19 @@ inputs:
     description: 'Connected account ID for transfers (acct_...)'
     required: false
 
+  # Dispute inputs
+  dispute-id:
+    description: 'Dispute ID (dp_...)'
+    required: false
+
+  # Event inputs
+  event-id:
+    description: 'Event ID (evt_...)'
+    required: false
+  event-type:
+    description: 'Event type filter (e.g. payment_intent.succeeded, customer.created)'
+    required: false
+
   # Balance transaction inputs
   type:
     description: 'Balance transaction type filter (charge, refund, payout, etc.)'

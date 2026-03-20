@@ -40,6 +40,10 @@ actions:
     create-transfer,
     get-transfer,
     list-transfers,
+    get-dispute,
+    list-disputes,
+    get-event,
+    list-events,
   ]
 complexity: beginner
 ---

@@ -562,3 +562,58 @@ commands:
       result:
         type: object
         description: '{data: [...], has_more}'
+
+  # -- Disputes ----------------------------------------------------------------
+
+  - name: get-dispute
+    description: Retrieve a dispute (chargeback) by ID.
+    inputs:
+      dispute-id:
+        type: string
+        required: true
+    outputs:
+      result:
+        type: object
+        description: '{id, status, amount, payment_intent, reason}'
+
+  - name: list-disputes
+    description: List disputes with optional payment filter.
+    inputs:
+      payment-id:
+        type: string
+        required: false
+      limit:
+        type: number
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{data: [...], has_more}'
+
+  # -- Events ------------------------------------------------------------------
+
+  - name: get-event
+    description: Retrieve a Stripe event by ID.
+    inputs:
+      event-id:
+        type: string
+        required: true
+    outputs:
+      result:
+        type: object
+        description: '{id, type, data: {object}, created}'
+
+  - name: list-events
+    description: List events with optional type filter. Useful for polling.
+    inputs:
+      event-type:
+        type: string
+        required: false
+        description: 'Filter by type (e.g. payment_intent.succeeded)'
+      limit:
+        type: number
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{data: [...], has_more}'

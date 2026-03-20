@@ -27613,6 +27613,38 @@ class StripeClient {
   }
 
   // ---------------------------------------------------------------------------
+  // Disputes
+  // ---------------------------------------------------------------------------
+
+  async getDispute(disputeId) {
+    if (!disputeId) throw new StripeError('dispute-id is required', { code: 'MISSING_DISPUTE_ID' })
+    return this.request('GET', `/v1/disputes/${encodeURIComponent(disputeId)}`)
+  }
+
+  async listDisputes({ paymentIntent, limit = 10 } = {}) {
+    const params = new URLSearchParams();
+    if (paymentIntent) params.set('payment_intent', paymentIntent);
+    params.set('limit', String(limit));
+    return this.request('GET', `/v1/disputes?${params.toString()}`)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Events
+  // ---------------------------------------------------------------------------
+
+  async getEvent(eventId) {
+    if (!eventId) throw new StripeError('event-id is required', { code: 'MISSING_EVENT_ID' })
+    return this.request('GET', `/v1/events/${encodeURIComponent(eventId)}`)
+  }
+
+  async listEvents({ type, limit = 10 } = {}) {
+    const params = new URLSearchParams();
+    if (type) params.set('type', type);
+    params.set('limit', String(limit));
+    return this.request('GET', `/v1/events?${params.toString()}`)
+  }
+
+  // ---------------------------------------------------------------------------
   // HTTP
   // ---------------------------------------------------------------------------
 
@@ -27721,6 +27753,12 @@ const COMMANDS = {
   'create-transfer': runCreateTransfer,
   'get-transfer': runGetTransfer,
   'list-transfers': runListTransfers,
+  // Disputes
+  'get-dispute': runGetDispute,
+  'list-disputes': runListDisputes,
+  // Events
+  'get-event': runGetEvent,
+  'list-events': runListEvents,
 };
 
 async function run() {
@@ -28015,6 +28053,32 @@ async function runGetTransfer(client) {
 async function runListTransfers(client) {
   return client.listTransfers({
     destination: optionalInput('destination'),
+    limit: optionalNumber('limit'),
+  })
+}
+
+// -- Disputes -----------------------------------------------------------------
+
+async function runGetDispute(client) {
+  return client.getDispute(coreExports.getInput('dispute-id', { required: true }))
+}
+
+async function runListDisputes(client) {
+  return client.listDisputes({
+    paymentIntent: optionalInput('payment-id'),
+    limit: optionalNumber('limit'),
+  })
+}
+
+// -- Events -------------------------------------------------------------------
+
+async function runGetEvent(client) {
+  return client.getEvent(coreExports.getInput('event-id', { required: true }))
+}
+
+async function runListEvents(client) {
+  return client.listEvents({
+    type: optionalInput('event-type'),
     limit: optionalNumber('limit'),
   })
 }

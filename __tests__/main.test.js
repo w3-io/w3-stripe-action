@@ -141,6 +141,25 @@ describe('run', () => {
   test('get-transfer', ok({ command: 'get-transfer', 'transfer-id': 'tr_1' }, { id: 'tr_1' }))
   test('list-transfers', ok({ command: 'list-transfers' }, { data: [] }))
 
+  // -- Disputes ---------------------------------------------------------------
+
+  test(
+    'get-dispute',
+    ok({ command: 'get-dispute', 'dispute-id': 'dp_1' }, { id: 'dp_1', status: 'needs_response' }),
+  )
+  test('list-disputes', ok({ command: 'list-disputes' }, { data: [] }))
+
+  // -- Events -----------------------------------------------------------------
+
+  test(
+    'get-event',
+    ok(
+      { command: 'get-event', 'event-id': 'evt_1' },
+      { id: 'evt_1', type: 'payment_intent.succeeded' },
+    ),
+  )
+  test('list-events', ok({ command: 'list-events' }, { data: [] }))
+
   // -- General ----------------------------------------------------------------
 
   test('unknown command fails', async () => {

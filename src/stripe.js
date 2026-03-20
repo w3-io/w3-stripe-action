@@ -355,6 +355,38 @@ export class StripeClient {
   }
 
   // ---------------------------------------------------------------------------
+  // Disputes
+  // ---------------------------------------------------------------------------
+
+  async getDispute(disputeId) {
+    if (!disputeId) throw new StripeError('dispute-id is required', { code: 'MISSING_DISPUTE_ID' })
+    return this.request('GET', `/v1/disputes/${encodeURIComponent(disputeId)}`)
+  }
+
+  async listDisputes({ paymentIntent, limit = 10 } = {}) {
+    const params = new URLSearchParams()
+    if (paymentIntent) params.set('payment_intent', paymentIntent)
+    params.set('limit', String(limit))
+    return this.request('GET', `/v1/disputes?${params.toString()}`)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Events
+  // ---------------------------------------------------------------------------
+
+  async getEvent(eventId) {
+    if (!eventId) throw new StripeError('event-id is required', { code: 'MISSING_EVENT_ID' })
+    return this.request('GET', `/v1/events/${encodeURIComponent(eventId)}`)
+  }
+
+  async listEvents({ type, limit = 10 } = {}) {
+    const params = new URLSearchParams()
+    if (type) params.set('type', type)
+    params.set('limit', String(limit))
+    return this.request('GET', `/v1/events?${params.toString()}`)
+  }
+
+  // ---------------------------------------------------------------------------
   // HTTP
   // ---------------------------------------------------------------------------
 
