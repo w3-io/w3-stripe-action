@@ -1,43 +1,138 @@
-# TODO: Replace this entire file with your action's definition.
-#
-# This file is the contract between your action and the workflow runner.
-# It defines what inputs your action accepts and what outputs it produces.
-# Keep inputs minimal and well-named. See the README for naming conventions.
-#
-# Reference: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
-
-name: 'W3 YourPartner Action'          # TODO: e.g. "W3 Cube3 Action"
-description: 'Short description'        # TODO: what does your action do?
+name: 'W3 Stripe Action'
+description: 'Complete Stripe integration — payments, customers, subscriptions, invoices, products, prices, refunds, payouts, balance, and transfers'
 author: 'w3-io'
 
 inputs:
   command:
-    description: 'Operation to perform'  # TODO: list your commands here
+    description: >
+      Operation to perform. See docs/guide.md for the full list of 41 commands
+      across payments, customers, subscriptions, invoices, products, prices,
+      balance, refunds, payouts, transfers, disputes, and events.
     required: true
   api-key:
-    description: 'API key for authentication'
-    required: true                       # TODO: set to false if your API needs no auth
+    description: 'Stripe API key (sk_test_... or sk_live_...)'
+    required: true
   api-url:
-    description: 'API base URL override (for testing or staging)'
+    description: 'Stripe API base URL override'
     required: false
-    default: 'https://api.yourpartner.com'  # TODO: your partner's production API URL
 
-  # TODO: Add your command-specific inputs below. Use plain names without
-  # partner prefix. For example:
-  #
-  # address:
-  #   description: 'Blockchain address to inspect'
-  #   required: false
-  #
-  # symbols:
-  #   description: 'Comma-separated token symbols (e.g. "BTC,ETH")'
-  #   required: false
+  # Payment inputs
+  amount:
+    description: 'Amount in smallest currency unit (e.g. cents). "1000" = $10.00'
+    required: false
+  currency:
+    description: 'Three-letter ISO currency code (default: usd)'
+    required: false
+    default: 'usd'
+  payment-id:
+    description: 'Payment intent ID (pi_...)'
+    required: false
+  payment-method:
+    description: 'Payment method ID for confirm-payment (pm_...)'
+    required: false
+  description:
+    description: 'Description for payment, customer, product, invoice, or payout'
+    required: false
+  metadata:
+    description: 'JSON object of key-value metadata'
+    required: false
+
+  # Customer inputs
+  customer-id:
+    description: 'Customer ID (cus_...)'
+    required: false
+  email:
+    description: 'Customer email address'
+    required: false
+  name:
+    description: 'Customer or product name'
+    required: false
+
+  # Product/Price inputs
+  product-id:
+    description: 'Product ID (prod_...)'
+    required: false
+  price-id:
+    description: 'Price ID (price_...)'
+    required: false
+  unit-amount:
+    description: 'Price per unit in cents'
+    required: false
+  recurring-interval:
+    description: 'Recurring interval for prices: day, week, month, or year'
+    required: false
+
+  # Subscription inputs
+  subscription-id:
+    description: 'Subscription ID (sub_...)'
+    required: false
+  status:
+    description: 'Filter by status (e.g. active, canceled, past_due)'
+    required: false
+
+  # Invoice inputs
+  invoice-id:
+    description: 'Invoice ID (in_...)'
+    required: false
+
+  # Refund inputs
+  refund-id:
+    description: 'Refund ID (re_...)'
+    required: false
+  reason:
+    description: 'Refund reason: duplicate, fraudulent, or requested_by_customer'
+    required: false
+
+  # Payout inputs
+  payout-id:
+    description: 'Payout ID (po_...)'
+    required: false
+
+  # Transfer inputs (Connect)
+  transfer-id:
+    description: 'Transfer ID (tr_...)'
+    required: false
+  destination:
+    description: 'Connected account ID for transfers (acct_...)'
+    required: false
+
+  # Dispute inputs
+  dispute-id:
+    description: 'Dispute ID (dp_...)'
+    required: false
+
+  # Event inputs
+  event-id:
+    description: 'Event ID (evt_...)'
+    required: false
+  event-type:
+    description: 'Event type filter (e.g. payment_intent.succeeded, customer.created)'
+    required: false
+
+  # Balance transaction inputs
+  type:
+    description: 'Balance transaction type filter (charge, refund, payout, etc.)'
+    required: false
+
+  # List inputs
+  limit:
+    description: 'Maximum results to return (default: 10)'
+    required: false
+    default: '10'
+
+  # Request configuration
+  max-retries:
+    description: 'Maximum retry attempts on 429/5xx (default: 3)'
+    required: false
+    default: '3'
+  timeout:
+    description: 'Request timeout in seconds (default: 30)'
+    required: false
+    default: '30'
 
 outputs:
   result:
     description: 'JSON result of the operation'
-    # This is the only output. Always a JSON string.
-    # Document the schema in your w3-action.yaml and docs/guide.md.
 
 runs:
   using: 'node20'

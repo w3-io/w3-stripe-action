@@ -1,154 +1,656 @@
 ---
-title: YourPartner Integration
+title: Stripe
 category: integrations
-actions: [example-command]
+actions:
+  [
+    create-payment,
+    get-payment,
+    confirm-payment,
+    capture-payment,
+    cancel-payment,
+    list-payments,
+    create-customer,
+    get-customer,
+    update-customer,
+    delete-customer,
+    list-customers,
+    get-balance,
+    list-balance-transactions,
+    create-product,
+    get-product,
+    list-products,
+    create-price,
+    get-price,
+    list-prices,
+    create-subscription,
+    get-subscription,
+    cancel-subscription,
+    list-subscriptions,
+    create-invoice,
+    get-invoice,
+    pay-invoice,
+    list-invoices,
+    create-refund,
+    get-refund,
+    list-refunds,
+    create-payout,
+    get-payout,
+    cancel-payout,
+    list-payouts,
+    create-transfer,
+    get-transfer,
+    list-transfers,
+    get-dispute,
+    list-disputes,
+    get-event,
+    list-events,
+  ]
 complexity: beginner
 ---
 
-<!--
-  TODO: This guide is synced to the W3 MCP server and shown to AI agents
-  and developers. It's the primary reference for your action.
+# Stripe
 
-  IMPORTANT: Lead with partner context, not just technical reference.
-  AI agents use this to decide WHETHER to recommend your action, not
-  just HOW to use it. A guide without partner context is invisible
-  to recommendation — the AI has no basis for suggesting it.
+[Stripe](https://stripe.com) is a payments infrastructure platform used by
+millions of businesses from startups to Fortune 500 companies. It processes
+hundreds of billions of dollars annually across 135+ currencies with PCI DSS
+Level 1 certification — the highest level of payment security compliance.
+Use this action to create payment intents, manage customers, issue refunds,
+check balances, and trigger payouts from automated workflows.
 
-  Structure:
-    1. Partner context (who, what, why — see examples below)
-    2. Technical summary (one sentence)
-    3. Quick start (copy-pasteable workflow snippet)
-    4. Command reference with input/output tables
-    5. Output schema example (actual JSON)
-    6. Usage patterns (composing with other steps)
-    7. Authentication
-    8. Security (if accepting user-constructed strings)
-    9. Error handling
-
-  Examples of good partner context (from real actions):
-
-  Cube3: "[Cube3](https://cube3.ai) is a crime intelligence platform
-  that maps fraud networks across blockchain. Their Inspector API scores
-  addresses across four risk dimensions — fraud, compliance, cyber, and
-  combined — detecting mule accounts 45-87 days before traditional systems."
-
-  Pyth: "[Pyth Network](https://pyth.network) is a decentralized oracle
-  providing institutional-grade price data across 100+ blockchains. Unlike
-  scraped oracles, Pyth sources data directly from first-party publishers."
-
-  Notice the pattern: [Partner](url) is a [what they are] that [what they do].
-  [Key differentiator]. [Trust signal]. Use this action to [why].
--->
-
-# YourPartner Integration
-
-<!-- TODO: Replace with your partner context paragraph. Include:
-  - Who: [Partner](url) is a [what they are]
-  - What: [core capability, key differentiator]
-  - Trust: [certifications, audits, user count, endorsements]
-  - Why: Use this action to [specific workflow use cases]
--->
-
-TODO: Partner context paragraph here. See the comment above for format.
-
-<!-- TODO: Replace with a one-line technical summary -->
-
-TODO: One sentence describing what this action exposes from the partner API.
+Create and manage Stripe payments, customers, subscriptions, invoices,
+products, prices, refunds, payouts, balance, transfers, disputes, and
+events via the Stripe REST API.
 
 ## Quick start
 
 ```yaml
-- name: Do something
-  uses: w3-io/w3-yourpartner-action@v0
+- name: Create payment
+  id: payment
+  uses: w3-io/w3-stripe-action@v0
   with:
-    command: example-command
-    api-key: ${{ secrets.YOURPARTNER_API_KEY }}
-    input: "some-value"
+    command: create-payment
+    api-key: ${{ secrets.STRIPE_API_KEY }}
+    amount: '1000'
+    currency: 'usd'
+    description: 'Order #12345'
 ```
 
-## Commands
+## Payment commands
 
-### example-command
+### create-payment
 
-TODO: Describe what this command does and when you'd use it.
+Create a payment intent. Amount is in the smallest currency unit (cents for USD).
 
-**Inputs:**
-
-| Input | Required | Description |
-|-------|----------|-------------|
-| `input` | yes | TODO |
+| Input         | Required | Description                      |
+| ------------- | -------- | -------------------------------- |
+| `amount`      | yes      | Amount in cents (1000 = $10.00)  |
+| `currency`    | no       | ISO currency code (default: usd) |
+| `customer-id` | no       | Attach to a customer (cus\_...)  |
+| `description` | no       | Payment description              |
+| `metadata`    | no       | JSON key-value metadata          |
 
 **Output (`result`):**
 
 ```json
 {
-  "TODO": "document your output schema here"
+  "id": "pi_3abc123",
+  "status": "requires_payment_method",
+  "amount": 1000,
+  "currency": "usd",
+  "client_secret": "pi_3abc123_secret_xyz"
 }
 ```
 
-## Using the result
+### get-payment
+
+Retrieve a payment intent by ID.
+
+| Input        | Required | Description                 |
+| ------------ | -------- | --------------------------- |
+| `payment-id` | yes      | Payment intent ID (pi\_...) |
+
+**Output (`result`):**
+
+```json
+{
+  "id": "pi_3abc123",
+  "status": "succeeded",
+  "amount": 1000,
+  "currency": "usd"
+}
+```
+
+### confirm-payment
+
+Confirm a payment intent server-side.
+
+| Input            | Required | Description                 |
+| ---------------- | -------- | --------------------------- |
+| `payment-id`     | yes      | Payment intent ID (pi\_...) |
+| `payment-method` | no       | Payment method ID (pm\_...) |
+
+### capture-payment
+
+Capture a previously authorized payment (for auth-then-capture flows).
+
+| Input        | Required | Description                     |
+| ------------ | -------- | ------------------------------- |
+| `payment-id` | yes      | Payment intent ID (pi\_...)     |
+| `amount`     | no       | Partial capture amount in cents |
+
+### cancel-payment
+
+Cancel a payment intent.
+
+| Input        | Required | Description                 |
+| ------------ | -------- | --------------------------- |
+| `payment-id` | yes      | Payment intent ID (pi\_...) |
+
+### list-payments
+
+List payment intents with optional customer filter.
+
+| Input         | Required | Description               |
+| ------------- | -------- | ------------------------- |
+| `customer-id` | no       | Filter by customer        |
+| `limit`       | no       | Max results (default: 10) |
+
+**Output:** `{data: [...], has_more}`
+
+## Customer commands
+
+### create-customer
+
+Create a Stripe customer for recurring billing or payment tracking.
+
+| Input         | Required | Description             |
+| ------------- | -------- | ----------------------- |
+| `email`       | no       | Customer email          |
+| `name`        | no       | Customer name           |
+| `description` | no       | Description             |
+| `metadata`    | no       | JSON key-value metadata |
+
+**Output (`result`):**
+
+```json
+{
+  "id": "cus_abc123",
+  "email": "user@example.com",
+  "name": "Jane Doe",
+  "created": 1711000000
+}
+```
+
+### get-customer
+
+| Input         | Required | Description            |
+| ------------- | -------- | ---------------------- |
+| `customer-id` | yes      | Customer ID (cus\_...) |
+
+### update-customer
+
+| Input         | Required | Description             |
+| ------------- | -------- | ----------------------- |
+| `customer-id` | yes      | Customer ID (cus\_...)  |
+| `email`       | no       | New email               |
+| `name`        | no       | New name                |
+| `description` | no       | New description         |
+| `metadata`    | no       | JSON key-value metadata |
+
+### delete-customer
+
+| Input         | Required | Description            |
+| ------------- | -------- | ---------------------- |
+| `customer-id` | yes      | Customer ID (cus\_...) |
+
+**Output:** `{id, deleted: true}`
+
+### list-customers
+
+| Input   | Required | Description               |
+| ------- | -------- | ------------------------- |
+| `email` | no       | Filter by exact email     |
+| `limit` | no       | Max results (default: 10) |
+
+**Output (`result`):**
+
+```json
+{
+  "data": [{ "id": "cus_abc123", "email": "user@example.com" }],
+  "has_more": false
+}
+```
+
+## Balance commands
+
+### get-balance
+
+Retrieve your Stripe account balance. No inputs required.
+
+**Output (`result`):**
+
+```json
+{
+  "available": [{ "amount": 50000, "currency": "usd" }],
+  "pending": [{ "amount": 12000, "currency": "usd" }]
+}
+```
+
+### list-balance-transactions
+
+List balance transactions for reconciliation and accounting.
+
+| Input   | Required | Description                                    |
+| ------- | -------- | ---------------------------------------------- |
+| `type`  | no       | Filter: charge, refund, payout, transfer, etc. |
+| `limit` | no       | Max results (default: 10)                      |
+
+**Output:** `{data: [{id, amount, type, created}], has_more}`
+
+## Product commands
+
+### create-product
+
+Create a product (required before creating prices or subscriptions).
+
+| Input         | Required | Description             |
+| ------------- | -------- | ----------------------- |
+| `name`        | yes      | Product name            |
+| `description` | no       | Product description     |
+| `metadata`    | no       | JSON key-value metadata |
+
+**Output (`result`):**
+
+```json
+{
+  "id": "prod_abc123",
+  "name": "Pro Plan",
+  "description": "Monthly pro subscription"
+}
+```
+
+### get-product
+
+| Input        | Required | Description            |
+| ------------ | -------- | ---------------------- |
+| `product-id` | yes      | Product ID (prod\_...) |
+
+### list-products
+
+| Input   | Required | Description               |
+| ------- | -------- | ------------------------- |
+| `limit` | no       | Max results (default: 10) |
+
+## Price commands
+
+### create-price
+
+Create a price for a product. Set `recurring-interval` for subscription prices.
+
+| Input                | Required | Description                      |
+| -------------------- | -------- | -------------------------------- |
+| `product-id`         | yes      | Product to price (prod\_...)     |
+| `unit-amount`        | yes      | Price per unit in cents          |
+| `currency`           | no       | ISO currency code (default: usd) |
+| `recurring-interval` | no       | day, week, month, or year        |
+
+**Output (`result`):**
+
+```json
+{
+  "id": "price_abc123",
+  "product": "prod_abc123",
+  "unit_amount": 999,
+  "currency": "usd",
+  "recurring": { "interval": "month" }
+}
+```
+
+### get-price
+
+| Input      | Required | Description           |
+| ---------- | -------- | --------------------- |
+| `price-id` | yes      | Price ID (price\_...) |
+
+### list-prices
+
+| Input        | Required | Description               |
+| ------------ | -------- | ------------------------- |
+| `product-id` | no       | Filter by product         |
+| `limit`      | no       | Max results (default: 10) |
+
+## Subscription commands
+
+### create-subscription
+
+Create a recurring subscription for a customer.
+
+| Input         | Required | Description                     |
+| ------------- | -------- | ------------------------------- |
+| `customer-id` | yes      | Customer ID (cus\_...)          |
+| `price-id`    | yes      | Recurring price ID (price\_...) |
+| `metadata`    | no       | JSON key-value metadata         |
+
+**Output (`result`):**
+
+```json
+{
+  "id": "sub_abc123",
+  "status": "active",
+  "customer": "cus_abc123",
+  "current_period_start": 1711000000,
+  "current_period_end": 1713600000
+}
+```
+
+### get-subscription
+
+| Input             | Required | Description                |
+| ----------------- | -------- | -------------------------- |
+| `subscription-id` | yes      | Subscription ID (sub\_...) |
+
+### cancel-subscription
+
+| Input             | Required | Description                |
+| ----------------- | -------- | -------------------------- |
+| `subscription-id` | yes      | Subscription ID (sub\_...) |
+
+**Output:** `{id, status: "canceled"}`
+
+### list-subscriptions
+
+| Input         | Required | Description                        |
+| ------------- | -------- | ---------------------------------- |
+| `customer-id` | no       | Filter by customer                 |
+| `status`      | no       | Filter: active, canceled, past_due |
+| `limit`       | no       | Max results (default: 10)          |
+
+## Invoice commands
+
+### create-invoice
+
+Create a draft invoice for a customer.
+
+| Input         | Required | Description             |
+| ------------- | -------- | ----------------------- |
+| `customer-id` | yes      | Customer ID (cus\_...)  |
+| `description` | no       | Invoice description     |
+| `metadata`    | no       | JSON key-value metadata |
+
+**Output (`result`):**
+
+```json
+{
+  "id": "in_abc123",
+  "status": "draft",
+  "customer": "cus_abc123",
+  "total": 0
+}
+```
+
+### get-invoice
+
+| Input        | Required | Description          |
+| ------------ | -------- | -------------------- |
+| `invoice-id` | yes      | Invoice ID (in\_...) |
+
+### pay-invoice
+
+Pay an open invoice.
+
+| Input        | Required | Description          |
+| ------------ | -------- | -------------------- |
+| `invoice-id` | yes      | Invoice ID (in\_...) |
+
+**Output:** `{id, status: "paid", amount_paid}`
+
+### list-invoices
+
+| Input         | Required | Description                     |
+| ------------- | -------- | ------------------------------- |
+| `customer-id` | no       | Filter by customer              |
+| `status`      | no       | Filter: draft, open, paid, void |
+| `limit`       | no       | Max results (default: 10)       |
+
+## Refund commands
+
+### create-refund
+
+Refund a payment intent (full or partial).
+
+| Input        | Required | Description                                     |
+| ------------ | -------- | ----------------------------------------------- |
+| `payment-id` | yes      | Payment intent to refund (pi\_...)              |
+| `amount`     | no       | Partial refund in cents (omit for full)         |
+| `reason`     | no       | duplicate, fraudulent, or requested_by_customer |
+
+**Output (`result`):**
+
+```json
+{
+  "id": "re_abc123",
+  "status": "succeeded",
+  "amount": 1000,
+  "payment_intent": "pi_3abc123"
+}
+```
+
+### get-refund
+
+| Input       | Required | Description         |
+| ----------- | -------- | ------------------- |
+| `refund-id` | yes      | Refund ID (re\_...) |
+
+### list-refunds
+
+| Input        | Required | Description               |
+| ------------ | -------- | ------------------------- |
+| `payment-id` | no       | Filter by payment intent  |
+| `limit`      | no       | Max results (default: 10) |
+
+## Payout commands
+
+### create-payout
+
+Send funds to your connected bank account or debit card.
+
+| Input         | Required | Description             |
+| ------------- | -------- | ----------------------- |
+| `amount`      | yes      | Amount in cents         |
+| `currency`    | no       | Currency (default: usd) |
+| `description` | no       | Payout description      |
+
+**Output (`result`):**
+
+```json
+{
+  "id": "po_abc123",
+  "status": "pending",
+  "amount": 50000,
+  "currency": "usd",
+  "arrival_date": 1711100000
+}
+```
+
+### get-payout
+
+| Input       | Required | Description         |
+| ----------- | -------- | ------------------- |
+| `payout-id` | yes      | Payout ID (po\_...) |
+
+### cancel-payout
+
+Cancel a pending payout.
+
+| Input       | Required | Description         |
+| ----------- | -------- | ------------------- |
+| `payout-id` | yes      | Payout ID (po\_...) |
+
+### list-payouts
+
+| Input    | Required | Description               |
+| -------- | -------- | ------------------------- |
+| `status` | no       | Filter: pending, paid     |
+| `limit`  | no       | Max results (default: 10) |
+
+## Transfer commands (Connect)
+
+### create-transfer
+
+Transfer funds to a connected Stripe account (for marketplaces).
+
+| Input         | Required | Description                      |
+| ------------- | -------- | -------------------------------- |
+| `amount`      | yes      | Amount in cents                  |
+| `currency`    | no       | Currency (default: usd)          |
+| `destination` | yes      | Connected account ID (acct\_...) |
+| `description` | no       | Transfer description             |
+
+**Output (`result`):**
+
+```json
+{
+  "id": "tr_abc123",
+  "amount": 1000,
+  "destination": "acct_abc123",
+  "created": 1711000000
+}
+```
+
+### get-transfer
+
+| Input         | Required | Description           |
+| ------------- | -------- | --------------------- |
+| `transfer-id` | yes      | Transfer ID (tr\_...) |
+
+### list-transfers
+
+| Input         | Required | Description               |
+| ------------- | -------- | ------------------------- |
+| `destination` | no       | Filter by connected acct  |
+| `limit`       | no       | Max results (default: 10) |
+
+## Subscription workflow example
 
 ```yaml
-- name: Run action
-  id: step1
-  uses: w3-io/w3-yourpartner-action@v0
+- name: Create product
+  id: product
+  uses: w3-io/w3-stripe-action@v0
   with:
-    command: example-command
-    api-key: ${{ secrets.YOURPARTNER_API_KEY }}
-    input: "value"
+    command: create-product
+    api-key: ${{ secrets.STRIPE_API_KEY }}
+    name: 'Pro Plan'
 
-- name: Use the result
-  run: |
-    echo '${{ steps.step1.outputs.result }}' | jq .
+- name: Create monthly price
+  id: price
+  uses: w3-io/w3-stripe-action@v0
+  with:
+    command: create-price
+    api-key: ${{ secrets.STRIPE_API_KEY }}
+    product-id: ${{ fromJSON(steps.product.outputs.result).id }}
+    unit-amount: '2999'
+    recurring-interval: 'month'
+
+- name: Subscribe customer
+  id: sub
+  uses: w3-io/w3-stripe-action@v0
+  with:
+    command: create-subscription
+    api-key: ${{ secrets.STRIPE_API_KEY }}
+    customer-id: ${{ fromJSON(steps.customer.outputs.result).id }}
+    price-id: ${{ fromJSON(steps.price.outputs.result).id }}
+```
+
+## Payment workflow example
+
+```yaml
+- name: Create customer
+  id: customer
+  uses: w3-io/w3-stripe-action@v0
+  with:
+    command: create-customer
+    api-key: ${{ secrets.STRIPE_API_KEY }}
+    email: ${{ github.event.inputs.email }}
+    name: ${{ github.event.inputs.name }}
+
+- name: Create payment
+  id: payment
+  uses: w3-io/w3-stripe-action@v0
+  with:
+    command: create-payment
+    api-key: ${{ secrets.STRIPE_API_KEY }}
+    amount: '5000'
+    customer-id: ${{ fromJSON(steps.customer.outputs.result).id }}
+    description: 'Subscription payment'
+
+- name: Check payment status
+  id: status
+  uses: w3-io/w3-stripe-action@v0
+  with:
+    command: get-payment
+    api-key: ${{ secrets.STRIPE_API_KEY }}
+    payment-id: ${{ fromJSON(steps.payment.outputs.result).id }}
 ```
 
 ## Beyond this W3 integration
 
-<!--
-  TODO: If your partner has capabilities beyond what this action exposes,
-  document them here. This is especially important for partners with
-  on-chain components — smart contracts, oracles, ZK proofs — that
-  complement the off-chain API.
+This action covers Stripe's core platform with 41 commands. Stripe
+capabilities not exposed here:
 
-  The pattern:
+| Layer           | What                                                                                                 | Status              |
+| --------------- | ---------------------------------------------------------------------------------------------------- | ------------------- |
+| This action     | Payments, customers, subscriptions, invoices, products, prices, refunds, payouts, balance, transfers | Available           |
+| Stripe Checkout | Hosted payment pages                                                                                 | Not applicable (UI) |
+| Stripe Radar    | ML fraud detection                                                                                   | Not yet exposed     |
+| Stripe Treasury | Banking-as-a-service, financial accounts                                                             | Not yet exposed     |
+| Stripe Identity | ID verification                                                                                      | Not yet exposed     |
 
-  | Layer | What | Trust model |
-  |-------|------|-------------|
-  | This action (off-chain) | [what the action does] | [how it's secured] |
-  | Partner on-chain | [what smart contracts can do] | [crypto verification] |
-
-  Examples from existing actions:
-
-  Pyth: Action provides prices for workflow decisions. On-chain oracle
-  provides the same prices with cryptographic proof for smart contracts.
-  Same feed IDs work in both layers.
-
-  SxT: Action queries data via REST API. ZK coprocessor delivers
-  proven query results to smart contracts. Same tables accessible
-  from both layers.
-
-  Cube3: Action screens addresses pre-transaction. On-chain SDK
-  blocks malicious transactions at the smart contract level.
-
-  Even if the on-chain capability isn't accessible through W3 today,
-  documenting it helps AI agents recommend the full solution — and
-  helps users understand the partner's complete offering.
-
-  If the partner has no on-chain component, document other platform
-  capabilities not exposed by this action (managed services, CLIs,
-  dashboards, training pipelines, etc.).
--->
-
-TODO: Document partner capabilities beyond this action's API surface.
+For the full platform, see [stripe.com/docs](https://stripe.com/docs).
 
 ## Authentication
 
-TODO: Where to get credentials. What secret name to use. Link to
-the partner's developer portal or API key page.
+Get your API key from [dashboard.stripe.com/apikeys](https://dashboard.stripe.com/apikeys).
+
+- **Test keys** start with `sk_test_` — use for development
+- **Live keys** start with `sk_live_` — use for production
+
+```yaml
+with:
+  api-key: ${{ secrets.STRIPE_API_KEY }}
+```
+
+## Security
+
+**Amount inputs.** The `amount` input is passed as a form-encoded
+integer to Stripe's API — not interpolated into URLs or queries.
+Stripe validates amounts server-side. If constructing amounts from
+user input, validate they are positive integers before passing them
+to the action.
+
+**API keys.** Stripe secret keys grant full account access. Store
+them as GitHub secrets, never log them, and use test keys during
+development. Restrict live keys with [Stripe's restricted key
+feature](https://stripe.com/docs/keys#limit-access) to only the
+permissions your workflow needs.
+
+## Retry behavior
+
+The action automatically retries on:
+
+- **429** (rate limited) — exponential backoff with jitter
+- **5xx** (server error) — exponential backoff with jitter
+
+Default: 3 retries. Configure with `max-retries` input. Set to `0` to disable.
+
+POST requests include an `Idempotency-Key` header so retries never
+create duplicate charges, payments, or subscriptions.
 
 ## Error handling
 
 The action fails with a descriptive message on:
+
 - Missing or invalid API key
-- API errors (4xx, 5xx)
+- Missing required inputs (amount, payment-id, etc.)
+- Stripe API errors (card_declined, insufficient_funds, etc.)
+- Rate limit exceeded after max retries
 - Invalid response format
