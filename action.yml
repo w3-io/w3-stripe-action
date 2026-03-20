@@ -5,9 +5,9 @@ author: 'w3-io'
 inputs:
   command:
     description: >
-      Operation to perform. See docs/guide.md for the full list of 37 commands
+      Operation to perform. See docs/guide.md for the full list of 41 commands
       across payments, customers, subscriptions, invoices, products, prices,
-      balance, refunds, payouts, and transfers.
+      balance, refunds, payouts, transfers, disputes, and events.
     required: true
   api-key:
     description: 'Stripe API key (sk_test_... or sk_live_...)'
