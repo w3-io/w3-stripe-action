@@ -25,6 +25,7 @@ export class StripeClient {
   constructor({ apiKey, baseUrl, timeout = 30 } = {}) {
     if (!apiKey) throw new StripeError('API key is required', { code: 'MISSING_API_KEY' })
     this.apiKey = apiKey
+    this.authHeader = `Basic ${Buffer.from(apiKey + ':').toString('base64')}`
     this.baseUrl = baseUrl ? baseUrl.replace(/\/+$/, '') : DEFAULT_BASE_URL
     this.timeout = timeout * 1000
   }
@@ -34,7 +35,7 @@ export class StripeClient {
   // ---------------------------------------------------------------------------
 
   async createPayment({ amount, currency = 'usd', customer, description, metadata }) {
-    if (!amount) throw new StripeError('amount is required', { code: 'MISSING_AMOUNT' })
+    if (amount == null) throw new StripeError('amount is required', { code: 'MISSING_AMOUNT' })
 
     const params = { amount: String(amount), currency }
     if (customer) params.customer = customer
@@ -67,7 +68,7 @@ export class StripeClient {
   async capturePayment(paymentId, { amountToCapture } = {}) {
     if (!paymentId) throw new StripeError('payment-id is required', { code: 'MISSING_PAYMENT_ID' })
     const params = {}
-    if (amountToCapture) params.amount_to_capture = String(amountToCapture)
+    if (amountToCapture != null) params.amount_to_capture = String(amountToCapture)
     return this.request(
       'POST',
       `/v1/payment_intents/${encodeURIComponent(paymentId)}/capture`,
@@ -175,12 +176,14 @@ export class StripeClient {
   }
 
   async listProducts({ limit = 10 } = {}) {
-    return this.request('GET', `/v1/products?limit=${limit}`)
+    const params = new URLSearchParams()
+    params.set('limit', String(limit))
+    return this.request('GET', `/v1/products?${params.toString()}`)
   }
 
   async createPrice({ product, unitAmount, currency = 'usd', recurring }) {
     if (!product) throw new StripeError('product-id is required', { code: 'MISSING_PRODUCT_ID' })
-    if (!unitAmount)
+    if (unitAmount == null)
       throw new StripeError('unit-amount is required', { code: 'MISSING_UNIT_AMOUNT' })
     const params = {
       product,
@@ -283,7 +286,7 @@ export class StripeClient {
     if (!paymentIntent)
       throw new StripeError('payment-id is required for refund', { code: 'MISSING_PAYMENT_ID' })
     const params = { payment_intent: paymentIntent }
-    if (amount) params.amount = String(amount)
+    if (amount != null) params.amount = String(amount)
     if (reason) params.reason = reason
     return this.request('POST', '/v1/refunds', params)
   }
@@ -305,7 +308,7 @@ export class StripeClient {
   // ---------------------------------------------------------------------------
 
   async createPayout({ amount, currency = 'usd', description }) {
-    if (!amount) throw new StripeError('amount is required', { code: 'MISSING_AMOUNT' })
+    if (amount == null) throw new StripeError('amount is required', { code: 'MISSING_AMOUNT' })
     const params = { amount: String(amount), currency }
     if (description) params.description = description
     return this.request('POST', '/v1/payouts', params)
@@ -333,7 +336,7 @@ export class StripeClient {
   // ---------------------------------------------------------------------------
 
   async createTransfer({ amount, currency = 'usd', destination, description }) {
-    if (!amount) throw new StripeError('amount is required', { code: 'MISSING_AMOUNT' })
+    if (amount == null) throw new StripeError('amount is required', { code: 'MISSING_AMOUNT' })
     if (!destination)
       throw new StripeError('destination is required', { code: 'MISSING_DESTINATION' })
     const params = { amount: String(amount), currency, destination }
@@ -393,7 +396,7 @@ export class StripeClient {
   async request(method, path, params) {
     const url = `${this.baseUrl}${path}`
     const headers = {
-      Authorization: `Basic ${Buffer.from(this.apiKey + ':').toString('base64')}`,
+      Authorization: this.authHeader,
       Accept: 'application/json',
     }
 

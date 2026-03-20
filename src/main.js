@@ -103,7 +103,12 @@ function optionalNumber(name) {
 
 function optionalJson(name) {
   const val = core.getInput(name)
-  return val ? JSON.parse(val) : undefined
+  if (!val) return undefined
+  try {
+    return JSON.parse(val)
+  } catch {
+    throw new StripeError(`Invalid JSON in "${name}" input`, { code: 'INVALID_JSON_INPUT' })
+  }
 }
 
 // -- Payments -----------------------------------------------------------------
