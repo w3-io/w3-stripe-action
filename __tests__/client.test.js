@@ -1,26 +1,5 @@
-/**
- * Client unit tests.
- *
- * These test your API client in isolation by mocking fetch().
- * No GitHub Actions runtime, no real API calls.
- *
- * Pattern:
- *   - mockOk(data) simulates a successful API response
- *   - mockError(status, body) simulates an error
- *   - Test the happy path, error paths, and edge cases
- *   - Use fixtures from __fixtures__/ for realistic response data
- *
- * TODO: Update imports to match your renamed client and error class.
- */
-
 import { jest } from '@jest/globals'
-import { readFileSync } from 'fs'
-// TODO: Update these imports
-import { Client, ClientError } from '../src/client.js'
-
-const fixtureResponse = JSON.parse(
-  readFileSync(new URL('../__fixtures__/api-response.json', import.meta.url)),
-)
+import { StripeClient, StripeError } from '../src/stripe.js'
 
 const mockFetch = jest.fn()
 global.fetch = mockFetch
@@ -41,68 +20,179 @@ function mockError(status, body) {
   })
 }
 
-// TODO: Update describe block and tests for your client
-describe('Client', () => {
+describe('StripeClient', () => {
   beforeEach(() => {
     mockFetch.mockReset()
   })
 
   test('constructor requires api key', () => {
-    expect(() => new Client({})).toThrow('API key is required')
+    expect(() => new StripeClient({})).toThrow('API key is required')
   })
 
   test('constructor strips trailing slash from base URL', () => {
-    const client = new Client({ apiKey: 'test', baseUrl: 'https://example.com/' })
+    const client = new StripeClient({ apiKey: 'sk_test_123', baseUrl: 'https://example.com/' })
     expect(client.baseUrl).toBe('https://example.com')
   })
 
-  describe('exampleCommand', () => {
-    const client = new Client({ apiKey: 'test-key' })
+  test('uses Basic auth with base64-encoded key', async () => {
+    const client = new StripeClient({ apiKey: 'sk_test_abc' })
+    mockOk({ id: 'bal_1' })
 
-    test('calls the correct endpoint', async () => {
-      mockOk(fixtureResponse)
+    await client.getBalance()
 
-      await client.exampleCommand('test-input')
+    const auth = mockFetch.mock.calls[0][1].headers.Authorization
+    const decoded = Buffer.from(auth.replace('Basic ', ''), 'base64').toString()
+    expect(decoded).toBe('sk_test_abc:')
+  })
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.yourpartner.com/v1/example/test-input',
-        expect.objectContaining({
-          method: 'GET',
-          headers: expect.objectContaining({
-            'X-Api-Key': 'test-key',
-          }),
+  test('sends form-encoded POST bodies', async () => {
+    const client = new StripeClient({ apiKey: 'sk_test_abc' })
+    mockOk({ id: 'pi_1', status: 'requires_payment_method' })
+
+    await client.createPayment({ amount: 1000, currency: 'usd' })
+
+    const [, opts] = mockFetch.mock.calls[0]
+    expect(opts.headers['Content-Type']).toBe('application/x-www-form-urlencoded')
+    expect(opts.body).toContain('amount=1000')
+    expect(opts.body).toContain('currency=usd')
+  })
+
+  describe('createPayment', () => {
+    const client = new StripeClient({ apiKey: 'sk_test_abc' })
+
+    test('sends amount and currency', async () => {
+      mockOk({ id: 'pi_1', amount: 2000 })
+
+      const result = await client.createPayment({ amount: 2000, currency: 'eur' })
+
+      expect(result.id).toBe('pi_1')
+      const body = mockFetch.mock.calls[0][1].body
+      expect(body).toContain('amount=2000')
+      expect(body).toContain('currency=eur')
+    })
+
+    test('sends metadata as bracket notation', async () => {
+      mockOk({ id: 'pi_1' })
+
+      await client.createPayment({ amount: 100, metadata: { order: '123' } })
+
+      const body = mockFetch.mock.calls[0][1].body
+      expect(body).toContain('metadata%5Border%5D=123')
+    })
+
+    test('throws without amount', async () => {
+      await expect(client.createPayment({})).rejects.toThrow('amount is required')
+    })
+  })
+
+  describe('getPayment', () => {
+    const client = new StripeClient({ apiKey: 'sk_test_abc' })
+
+    test('fetches by ID', async () => {
+      mockOk({ id: 'pi_123', status: 'succeeded' })
+
+      const result = await client.getPayment('pi_123')
+
+      expect(result.status).toBe('succeeded')
+      expect(mockFetch.mock.calls[0][0]).toContain('/v1/payment_intents/pi_123')
+    })
+
+    test('throws without ID', async () => {
+      await expect(client.getPayment('')).rejects.toThrow('payment-id is required')
+    })
+  })
+
+  describe('createCustomer', () => {
+    const client = new StripeClient({ apiKey: 'sk_test_abc' })
+
+    test('sends email and name', async () => {
+      mockOk({ id: 'cus_1', email: 'a@b.com' })
+
+      const result = await client.createCustomer({ email: 'a@b.com', name: 'Test' })
+
+      expect(result.id).toBe('cus_1')
+      const body = mockFetch.mock.calls[0][1].body
+      expect(body).toContain('email=a%40b.com')
+      expect(body).toContain('name=Test')
+    })
+  })
+
+  describe('getBalance', () => {
+    const client = new StripeClient({ apiKey: 'sk_test_abc' })
+
+    test('returns balance object', async () => {
+      mockOk({ available: [{ amount: 5000, currency: 'usd' }] })
+
+      const result = await client.getBalance()
+
+      expect(result.available[0].amount).toBe(5000)
+      expect(mockFetch.mock.calls[0][0]).toContain('/v1/balance')
+    })
+  })
+
+  describe('createRefund', () => {
+    const client = new StripeClient({ apiKey: 'sk_test_abc' })
+
+    test('sends payment_intent', async () => {
+      mockOk({ id: 're_1', status: 'succeeded' })
+
+      await client.createRefund({ paymentIntent: 'pi_123' })
+
+      const body = mockFetch.mock.calls[0][1].body
+      expect(body).toContain('payment_intent=pi_123')
+    })
+
+    test('throws without paymentIntent', async () => {
+      await expect(client.createRefund({})).rejects.toThrow('payment-id is required')
+    })
+  })
+
+  describe('createPayout', () => {
+    const client = new StripeClient({ apiKey: 'sk_test_abc' })
+
+    test('sends amount', async () => {
+      mockOk({ id: 'po_1', status: 'pending' })
+
+      await client.createPayout({ amount: 5000 })
+
+      const body = mockFetch.mock.calls[0][1].body
+      expect(body).toContain('amount=5000')
+    })
+
+    test('throws without amount', async () => {
+      await expect(client.createPayout({})).rejects.toThrow('amount is required')
+    })
+  })
+
+  describe('error handling', () => {
+    const client = new StripeClient({ apiKey: 'sk_test_abc' })
+
+    test('parses Stripe error format', async () => {
+      mockError(
+        402,
+        JSON.stringify({
+          error: { message: 'Card declined', code: 'card_declined', type: 'card_error' },
         }),
       )
-    })
-
-    test('requires input', async () => {
-      await expect(client.exampleCommand('')).rejects.toThrow('Input is required')
-    })
-
-    test('throws on API error', async () => {
-      mockError(500, 'Internal Server Error')
 
       try {
-        await client.exampleCommand('test')
+        await client.getBalance()
       } catch (e) {
-        expect(e).toBeInstanceOf(ClientError)
-        expect(e.code).toBe('API_ERROR')
-        expect(e.status).toBe(500)
+        expect(e).toBeInstanceOf(StripeError)
+        expect(e.message).toBe('Card declined')
+        expect(e.code).toBe('card_declined')
+        expect(e.type).toBe('card_error')
       }
     })
 
-    test('throws on invalid JSON response', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        text: async () => 'not json',
-      })
+    test('handles non-JSON error', async () => {
+      mockError(500, 'Internal Server Error')
 
       try {
-        await client.exampleCommand('test')
+        await client.getBalance()
       } catch (e) {
-        expect(e).toBeInstanceOf(ClientError)
-        expect(e.code).toBe('PARSE_ERROR')
+        expect(e).toBeInstanceOf(StripeError)
+        expect(e.code).toBe('API_ERROR')
       }
     })
   })

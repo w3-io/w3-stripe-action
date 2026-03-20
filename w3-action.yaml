@@ -1,44 +1,209 @@
-# TODO: This file describes your action for the W3 MCP server.
-# AI agents use this to discover your action, understand its commands,
-# and generate correct workflow YAML. Keep it in sync with action.yml.
-#
-# On release, this file is synced to the MCP's registry.yaml.
-
-kind: integration              # integration | primitive | utility
-partner: yourpartner           # TODO: machine-readable partner ID
-name: YourPartner Integration  # TODO: human-readable name
+kind: integration
+partner: stripe
+name: Stripe
 version: 1.0.0
-repo: w3-io/w3-yourpartner-action  # TODO: your repo
-
+repo: w3-io/w3-stripe-action
 commands:
-  # TODO: Define each command your action supports. Example:
-  #
-  # - name: inspect
-  #   description: >
-  #     Risk assessment for a blockchain address. Returns per-chain
-  #     scores for fraud, compliance, and cyber risk.
-  #   inputs:
-  #     address:
-  #       type: string
-  #       required: true
-  #       description: Blockchain address to inspect
-  #     chain-id:
-  #       type: string
-  #       required: false
-  #       description: Filter to a specific chain
-  #   outputs:
-  #     result:
-  #       type: object
-  #       description: Full risk score breakdown
+  # -- Payments ----------------------------------------------------------------
 
-  - name: example-command
-    description: TODO - describe what this command does
+  - name: create-payment
+    description: >
+      Create a payment intent. Returns a client secret for frontend
+      confirmation or use confirm-payment for server-side flows.
     inputs:
-      input:
-        type: string
+      amount:
+        type: number
         required: true
-        description: TODO - describe this input
+        description: Amount in smallest currency unit (cents). 1000 = $10.00
+      currency:
+        type: string
+        required: false
+        description: 'Three-letter ISO currency code (default: usd)'
+      customer-id:
+        type: string
+        required: false
+        description: Attach payment to a customer (cus_...)
+      description:
+        type: string
+        required: false
+        description: Payment description
+      metadata:
+        type: string
+        required: false
+        description: JSON object of key-value metadata
     outputs:
       result:
         type: object
-        description: TODO - describe the output shape
+        description: '{id, status, amount, currency, client_secret}'
+
+  - name: get-payment
+    description: Retrieve a payment intent by ID.
+    inputs:
+      payment-id:
+        type: string
+        required: true
+        description: Payment intent ID (pi_...)
+    outputs:
+      result:
+        type: object
+        description: '{id, status, amount, currency, charges, ...}'
+
+  - name: confirm-payment
+    description: Confirm a payment intent server-side.
+    inputs:
+      payment-id:
+        type: string
+        required: true
+        description: Payment intent ID (pi_...)
+      payment-method:
+        type: string
+        required: false
+        description: Payment method ID (pm_...)
+    outputs:
+      result:
+        type: object
+        description: '{id, status, ...}'
+
+  - name: cancel-payment
+    description: Cancel a payment intent.
+    inputs:
+      payment-id:
+        type: string
+        required: true
+        description: Payment intent ID (pi_...)
+    outputs:
+      result:
+        type: object
+        description: '{id, status: "canceled", ...}'
+
+  # -- Customers ---------------------------------------------------------------
+
+  - name: create-customer
+    description: Create a Stripe customer for recurring billing.
+    inputs:
+      email:
+        type: string
+        required: false
+        description: Customer email
+      name:
+        type: string
+        required: false
+        description: Customer name
+      description:
+        type: string
+        required: false
+        description: Customer description
+      metadata:
+        type: string
+        required: false
+        description: JSON object of key-value metadata
+    outputs:
+      result:
+        type: object
+        description: '{id, email, name, ...}'
+
+  - name: get-customer
+    description: Retrieve a customer by ID.
+    inputs:
+      customer-id:
+        type: string
+        required: true
+        description: Customer ID (cus_...)
+    outputs:
+      result:
+        type: object
+        description: '{id, email, name, ...}'
+
+  - name: list-customers
+    description: List customers with optional email filter.
+    inputs:
+      email:
+        type: string
+        required: false
+        description: Filter by exact email
+      limit:
+        type: number
+        required: false
+        description: 'Max results (default: 10)'
+    outputs:
+      result:
+        type: object
+        description: '{data: [{id, email, name}], has_more}'
+
+  # -- Balance -----------------------------------------------------------------
+
+  - name: get-balance
+    description: Retrieve your Stripe account balance (available + pending).
+    inputs: {}
+    outputs:
+      result:
+        type: object
+        description: '{available: [{amount, currency}], pending: [{amount, currency}]}'
+
+  # -- Refunds -----------------------------------------------------------------
+
+  - name: create-refund
+    description: Refund a payment intent (full or partial).
+    inputs:
+      payment-id:
+        type: string
+        required: true
+        description: Payment intent ID to refund (pi_...)
+      amount:
+        type: number
+        required: false
+        description: Partial refund amount in cents (omit for full refund)
+      reason:
+        type: string
+        required: false
+        description: 'Reason: duplicate, fraudulent, or requested_by_customer'
+    outputs:
+      result:
+        type: object
+        description: '{id, status, amount, payment_intent}'
+
+  - name: get-refund
+    description: Retrieve a refund by ID.
+    inputs:
+      refund-id:
+        type: string
+        required: true
+        description: Refund ID (re_...)
+    outputs:
+      result:
+        type: object
+        description: '{id, status, amount, payment_intent}'
+
+  # -- Payouts -----------------------------------------------------------------
+
+  - name: create-payout
+    description: Send funds to your bank account or debit card.
+    inputs:
+      amount:
+        type: number
+        required: true
+        description: Payout amount in cents
+      currency:
+        type: string
+        required: false
+        description: 'Currency (default: usd)'
+      description:
+        type: string
+        required: false
+        description: Payout description
+    outputs:
+      result:
+        type: object
+        description: '{id, status, amount, currency, arrival_date}'
+
+  - name: get-payout
+    description: Retrieve a payout by ID.
+    inputs:
+      payout-id:
+        type: string
+        required: true
+        description: Payout ID (po_...)
+    outputs:
+      result:
+        type: object
+        description: '{id, status, amount, currency, arrival_date}'

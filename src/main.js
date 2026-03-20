@@ -1,30 +1,24 @@
-/**
- * Command router and output formatter.
- *
- * This file wires your client to the GitHub Actions runtime. It:
- *   1. Reads the `command` input to determine which operation to run
- *   2. Creates your client with the provided credentials
- *   3. Calls the appropriate handler function
- *   4. Sets the `result` output as a JSON string
- *   5. Writes a job summary for visibility in the Actions UI
- *   6. Reports errors cleanly via core.setFailed()
- *
- * To add a new command:
- *   1. Write a handler function (async, takes client, returns result)
- *   2. Add it to the COMMANDS map
- *   3. Add summary rendering in writeSummary() if appropriate
- */
-
 import * as core from '@actions/core'
-// TODO: Update this import to match your renamed client
-import { Client, ClientError } from './client.js'
+import { StripeClient, StripeError } from './stripe.js'
 
-// TODO: Replace with your commands. Each key is a command name that users
-// pass via the `command` input. Each value is an async function that takes
-// the client and returns a result object.
 const COMMANDS = {
-  'example-command': runExampleCommand,
-  // 'another-command': runAnotherCommand,
+  // Payments
+  'create-payment': runCreatePayment,
+  'get-payment': runGetPayment,
+  'confirm-payment': runConfirmPayment,
+  'cancel-payment': runCancelPayment,
+  // Customers
+  'create-customer': runCreateCustomer,
+  'get-customer': runGetCustomer,
+  'list-customers': runListCustomers,
+  // Balance
+  'get-balance': runGetBalance,
+  // Refunds
+  'create-refund': runCreateRefund,
+  'get-refund': runGetRefund,
+  // Payouts
+  'create-payout': runCreatePayout,
+  'get-payout': runGetPayout,
 }
 
 export async function run() {
@@ -33,15 +27,17 @@ export async function run() {
     const handler = COMMANDS[command]
 
     if (!handler) {
-      core.setFailed(`Unknown command: "${command}". Available: ${Object.keys(COMMANDS).join(', ')}`)
+      core.setFailed(
+        `Unknown command: "${command}". Available: ${Object.keys(COMMANDS).join(', ')}`,
+      )
       return
     }
 
-    // TODO: Update constructor args to match your client.
-    // Remove apiKey if your API doesn't need auth.
-    const client = new Client({
+    const timeoutInput = core.getInput('timeout')
+    const client = new StripeClient({
       apiKey: core.getInput('api-key', { required: true }),
       baseUrl: core.getInput('api-url') || undefined,
+      timeout: timeoutInput ? Number(timeoutInput) : undefined,
     })
 
     const result = await handler(client)
@@ -49,36 +45,106 @@ export async function run() {
 
     writeSummary(command, result)
   } catch (error) {
-    // TODO: Update error class name to match yours
-    if (error instanceof ClientError) {
-      core.setFailed(`${error.name} (${error.code}): ${error.message}`)
+    if (error instanceof StripeError) {
+      core.setFailed(`Stripe error (${error.code}): ${error.message}`)
     } else {
       core.setFailed(error.message)
     }
   }
 }
 
-// -- Command handlers -------------------------------------------------------
-// Each handler reads its own inputs, calls the client, returns a result.
-// Keep these thin — business logic belongs in the client.
+// -- Payments -----------------------------------------------------------------
 
-async function runExampleCommand(client) {
-  // TODO: Read your command-specific inputs here
-  const input = core.getInput('input', { required: true })
-
-  return client.exampleCommand(input)
+async function runCreatePayment(client) {
+  const amount = core.getInput('amount', { required: true })
+  const currency = core.getInput('currency') || undefined
+  const customer = core.getInput('customer-id') || undefined
+  const description = core.getInput('description') || undefined
+  const metadataRaw = core.getInput('metadata') || undefined
+  const metadata = metadataRaw ? JSON.parse(metadataRaw) : undefined
+  return client.createPayment({ amount, currency, customer, description, metadata })
 }
 
-// -- Job summary ------------------------------------------------------------
-// Optional but recommended. Renders a visible summary in the Actions UI.
-// See https://github.blog/news-insights/product-news/supercharging-github-actions-with-job-summaries/
+async function runGetPayment(client) {
+  const paymentId = core.getInput('payment-id', { required: true })
+  return client.getPayment(paymentId)
+}
+
+async function runConfirmPayment(client) {
+  const paymentId = core.getInput('payment-id', { required: true })
+  const paymentMethod = core.getInput('payment-method') || undefined
+  return client.confirmPayment(paymentId, { paymentMethod })
+}
+
+async function runCancelPayment(client) {
+  const paymentId = core.getInput('payment-id', { required: true })
+  return client.cancelPayment(paymentId)
+}
+
+// -- Customers ----------------------------------------------------------------
+
+async function runCreateCustomer(client) {
+  const email = core.getInput('email') || undefined
+  const name = core.getInput('name') || undefined
+  const description = core.getInput('description') || undefined
+  const metadataRaw = core.getInput('metadata') || undefined
+  const metadata = metadataRaw ? JSON.parse(metadataRaw) : undefined
+  return client.createCustomer({ email, name, description, metadata })
+}
+
+async function runGetCustomer(client) {
+  const customerId = core.getInput('customer-id', { required: true })
+  return client.getCustomer(customerId)
+}
+
+async function runListCustomers(client) {
+  const email = core.getInput('email') || undefined
+  const limitInput = core.getInput('limit')
+  const limit = limitInput ? Number(limitInput) : undefined
+  return client.listCustomers({ email, limit })
+}
+
+// -- Balance ------------------------------------------------------------------
+
+async function runGetBalance(client) {
+  return client.getBalance()
+}
+
+// -- Refunds ------------------------------------------------------------------
+
+async function runCreateRefund(client) {
+  const paymentIntent = core.getInput('payment-id', { required: true })
+  const amountInput = core.getInput('amount')
+  const amount = amountInput ? Number(amountInput) : undefined
+  const reason = core.getInput('reason') || undefined
+  return client.createRefund({ paymentIntent, amount, reason })
+}
+
+async function runGetRefund(client) {
+  const refundId = core.getInput('refund-id', { required: true })
+  return client.getRefund(refundId)
+}
+
+// -- Payouts ------------------------------------------------------------------
+
+async function runCreatePayout(client) {
+  const amount = core.getInput('amount', { required: true })
+  const currency = core.getInput('currency') || undefined
+  const description = core.getInput('description') || undefined
+  return client.createPayout({ amount, currency, description })
+}
+
+async function runGetPayout(client) {
+  const payoutId = core.getInput('payout-id', { required: true })
+  return client.getPayout(payoutId)
+}
+
+// -- Job summary --------------------------------------------------------------
 
 function writeSummary(command, result) {
-  // TODO: Customize the summary for your action. A table of key results
-  // works well. Delete this function if your action doesn't need a summary.
+  const heading = `Stripe: ${command}`
   core.summary
-    .addHeading('Action Result', 3)
-    .addRaw(`**Command:** \`${command}\`\n\n`)
+    .addHeading(heading, 3)
     .addCodeBlock(JSON.stringify(result, null, 2), 'json')
     .write()
 }

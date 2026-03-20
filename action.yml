@@ -1,43 +1,82 @@
-# TODO: Replace this entire file with your action's definition.
-#
-# This file is the contract between your action and the workflow runner.
-# It defines what inputs your action accepts and what outputs it produces.
-# Keep inputs minimal and well-named. See the README for naming conventions.
-#
-# Reference: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
-
-name: 'W3 YourPartner Action'          # TODO: e.g. "W3 Cube3 Action"
-description: 'Short description'        # TODO: what does your action do?
+name: 'W3 Stripe Action'
+description: 'Payments, payouts, customers, refunds, and balance via Stripe API'
 author: 'w3-io'
 
 inputs:
   command:
-    description: 'Operation to perform'  # TODO: list your commands here
+    description: >
+      Operation to perform. Payments: create-payment, get-payment,
+      confirm-payment, cancel-payment. Customers: create-customer,
+      get-customer, list-customers. Balance: get-balance. Refunds:
+      create-refund, get-refund. Payouts: create-payout, get-payout.
     required: true
   api-key:
-    description: 'API key for authentication'
-    required: true                       # TODO: set to false if your API needs no auth
+    description: 'Stripe API key (sk_test_... or sk_live_...)'
+    required: true
   api-url:
-    description: 'API base URL override (for testing or staging)'
+    description: 'Stripe API base URL override'
     required: false
-    default: 'https://api.yourpartner.com'  # TODO: your partner's production API URL
 
-  # TODO: Add your command-specific inputs below. Use plain names without
-  # partner prefix. For example:
-  #
-  # address:
-  #   description: 'Blockchain address to inspect'
-  #   required: false
-  #
-  # symbols:
-  #   description: 'Comma-separated token symbols (e.g. "BTC,ETH")'
-  #   required: false
+  # Payment inputs
+  amount:
+    description: 'Amount in smallest currency unit (e.g. cents). "1000" = $10.00'
+    required: false
+  currency:
+    description: 'Three-letter ISO currency code (default: usd)'
+    required: false
+    default: 'usd'
+  payment-id:
+    description: 'Payment intent ID (pi_...)'
+    required: false
+  payment-method:
+    description: 'Payment method ID for confirm-payment (pm_...)'
+    required: false
+  description:
+    description: 'Description for payment, customer, or payout'
+    required: false
+  metadata:
+    description: 'JSON object of key-value metadata'
+    required: false
+
+  # Customer inputs
+  customer-id:
+    description: 'Customer ID (cus_...)'
+    required: false
+  email:
+    description: 'Customer email address'
+    required: false
+  name:
+    description: 'Customer name'
+    required: false
+
+  # Refund inputs
+  refund-id:
+    description: 'Refund ID (re_...)'
+    required: false
+  reason:
+    description: 'Refund reason: duplicate, fraudulent, or requested_by_customer'
+    required: false
+
+  # Payout inputs
+  payout-id:
+    description: 'Payout ID (po_...)'
+    required: false
+
+  # List inputs
+  limit:
+    description: 'Maximum results to return (default: 10)'
+    required: false
+    default: '10'
+
+  # Request configuration
+  timeout:
+    description: 'Request timeout in seconds (default: 30)'
+    required: false
+    default: '30'
 
 outputs:
   result:
     description: 'JSON result of the operation'
-    # This is the only output. Always a JSON string.
-    # Document the schema in your w3-action.yaml and docs/guide.md.
 
 runs:
   using: 'node20'
