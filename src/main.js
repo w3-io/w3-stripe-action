@@ -6,19 +6,49 @@ const COMMANDS = {
   'create-payment': runCreatePayment,
   'get-payment': runGetPayment,
   'confirm-payment': runConfirmPayment,
+  'capture-payment': runCapturePayment,
   'cancel-payment': runCancelPayment,
+  'list-payments': runListPayments,
   // Customers
   'create-customer': runCreateCustomer,
   'get-customer': runGetCustomer,
+  'update-customer': runUpdateCustomer,
+  'delete-customer': runDeleteCustomer,
   'list-customers': runListCustomers,
   // Balance
   'get-balance': runGetBalance,
+  'list-balance-transactions': runListBalanceTransactions,
+  // Products
+  'create-product': runCreateProduct,
+  'get-product': runGetProduct,
+  'list-products': runListProducts,
+  // Prices
+  'create-price': runCreatePrice,
+  'get-price': runGetPrice,
+  'list-prices': runListPrices,
+  // Subscriptions
+  'create-subscription': runCreateSubscription,
+  'get-subscription': runGetSubscription,
+  'cancel-subscription': runCancelSubscription,
+  'list-subscriptions': runListSubscriptions,
+  // Invoices
+  'create-invoice': runCreateInvoice,
+  'get-invoice': runGetInvoice,
+  'pay-invoice': runPayInvoice,
+  'list-invoices': runListInvoices,
   // Refunds
   'create-refund': runCreateRefund,
   'get-refund': runGetRefund,
+  'list-refunds': runListRefunds,
   // Payouts
   'create-payout': runCreatePayout,
   'get-payout': runGetPayout,
+  'cancel-payout': runCancelPayout,
+  'list-payouts': runListPayouts,
+  // Transfers (Connect)
+  'create-transfer': runCreateTransfer,
+  'get-transfer': runGetTransfer,
+  'list-transfers': runListTransfers,
 }
 
 export async function run() {
@@ -53,55 +83,95 @@ export async function run() {
   }
 }
 
+// -- Helpers ------------------------------------------------------------------
+
+function optionalInput(name) {
+  const val = core.getInput(name)
+  return val || undefined
+}
+
+function optionalNumber(name) {
+  const val = core.getInput(name)
+  return val ? Number(val) : undefined
+}
+
+function optionalJson(name) {
+  const val = core.getInput(name)
+  return val ? JSON.parse(val) : undefined
+}
+
 // -- Payments -----------------------------------------------------------------
 
 async function runCreatePayment(client) {
-  const amount = core.getInput('amount', { required: true })
-  const currency = core.getInput('currency') || undefined
-  const customer = core.getInput('customer-id') || undefined
-  const description = core.getInput('description') || undefined
-  const metadataRaw = core.getInput('metadata') || undefined
-  const metadata = metadataRaw ? JSON.parse(metadataRaw) : undefined
-  return client.createPayment({ amount, currency, customer, description, metadata })
+  return client.createPayment({
+    amount: core.getInput('amount', { required: true }),
+    currency: optionalInput('currency'),
+    customer: optionalInput('customer-id'),
+    description: optionalInput('description'),
+    metadata: optionalJson('metadata'),
+  })
 }
 
 async function runGetPayment(client) {
-  const paymentId = core.getInput('payment-id', { required: true })
-  return client.getPayment(paymentId)
+  return client.getPayment(core.getInput('payment-id', { required: true }))
 }
 
 async function runConfirmPayment(client) {
-  const paymentId = core.getInput('payment-id', { required: true })
-  const paymentMethod = core.getInput('payment-method') || undefined
-  return client.confirmPayment(paymentId, { paymentMethod })
+  return client.confirmPayment(core.getInput('payment-id', { required: true }), {
+    paymentMethod: optionalInput('payment-method'),
+  })
+}
+
+async function runCapturePayment(client) {
+  return client.capturePayment(core.getInput('payment-id', { required: true }), {
+    amountToCapture: optionalNumber('amount'),
+  })
 }
 
 async function runCancelPayment(client) {
-  const paymentId = core.getInput('payment-id', { required: true })
-  return client.cancelPayment(paymentId)
+  return client.cancelPayment(core.getInput('payment-id', { required: true }))
+}
+
+async function runListPayments(client) {
+  return client.listPayments({
+    customer: optionalInput('customer-id'),
+    limit: optionalNumber('limit'),
+  })
 }
 
 // -- Customers ----------------------------------------------------------------
 
 async function runCreateCustomer(client) {
-  const email = core.getInput('email') || undefined
-  const name = core.getInput('name') || undefined
-  const description = core.getInput('description') || undefined
-  const metadataRaw = core.getInput('metadata') || undefined
-  const metadata = metadataRaw ? JSON.parse(metadataRaw) : undefined
-  return client.createCustomer({ email, name, description, metadata })
+  return client.createCustomer({
+    email: optionalInput('email'),
+    name: optionalInput('name'),
+    description: optionalInput('description'),
+    metadata: optionalJson('metadata'),
+  })
 }
 
 async function runGetCustomer(client) {
-  const customerId = core.getInput('customer-id', { required: true })
-  return client.getCustomer(customerId)
+  return client.getCustomer(core.getInput('customer-id', { required: true }))
+}
+
+async function runUpdateCustomer(client) {
+  return client.updateCustomer(core.getInput('customer-id', { required: true }), {
+    email: optionalInput('email'),
+    name: optionalInput('name'),
+    description: optionalInput('description'),
+    metadata: optionalJson('metadata'),
+  })
+}
+
+async function runDeleteCustomer(client) {
+  return client.deleteCustomer(core.getInput('customer-id', { required: true }))
 }
 
 async function runListCustomers(client) {
-  const email = core.getInput('email') || undefined
-  const limitInput = core.getInput('limit')
-  const limit = limitInput ? Number(limitInput) : undefined
-  return client.listCustomers({ email, limit })
+  return client.listCustomers({
+    email: optionalInput('email'),
+    limit: optionalNumber('limit'),
+  })
 }
 
 // -- Balance ------------------------------------------------------------------
@@ -110,33 +180,171 @@ async function runGetBalance(client) {
   return client.getBalance()
 }
 
+async function runListBalanceTransactions(client) {
+  return client.listBalanceTransactions({
+    limit: optionalNumber('limit'),
+    type: optionalInput('type'),
+  })
+}
+
+// -- Products -----------------------------------------------------------------
+
+async function runCreateProduct(client) {
+  return client.createProduct({
+    name: core.getInput('name', { required: true }),
+    description: optionalInput('description'),
+    metadata: optionalJson('metadata'),
+  })
+}
+
+async function runGetProduct(client) {
+  return client.getProduct(core.getInput('product-id', { required: true }))
+}
+
+async function runListProducts(client) {
+  return client.listProducts({ limit: optionalNumber('limit') })
+}
+
+// -- Prices -------------------------------------------------------------------
+
+async function runCreatePrice(client) {
+  return client.createPrice({
+    product: core.getInput('product-id', { required: true }),
+    unitAmount: core.getInput('unit-amount', { required: true }),
+    currency: optionalInput('currency'),
+    recurring: optionalInput('recurring-interval'),
+  })
+}
+
+async function runGetPrice(client) {
+  return client.getPrice(core.getInput('price-id', { required: true }))
+}
+
+async function runListPrices(client) {
+  return client.listPrices({
+    product: optionalInput('product-id'),
+    limit: optionalNumber('limit'),
+  })
+}
+
+// -- Subscriptions ------------------------------------------------------------
+
+async function runCreateSubscription(client) {
+  return client.createSubscription({
+    customer: core.getInput('customer-id', { required: true }),
+    price: core.getInput('price-id', { required: true }),
+    metadata: optionalJson('metadata'),
+  })
+}
+
+async function runGetSubscription(client) {
+  return client.getSubscription(core.getInput('subscription-id', { required: true }))
+}
+
+async function runCancelSubscription(client) {
+  return client.cancelSubscription(core.getInput('subscription-id', { required: true }))
+}
+
+async function runListSubscriptions(client) {
+  return client.listSubscriptions({
+    customer: optionalInput('customer-id'),
+    status: optionalInput('status'),
+    limit: optionalNumber('limit'),
+  })
+}
+
+// -- Invoices -----------------------------------------------------------------
+
+async function runCreateInvoice(client) {
+  return client.createInvoice({
+    customer: core.getInput('customer-id', { required: true }),
+    description: optionalInput('description'),
+    metadata: optionalJson('metadata'),
+  })
+}
+
+async function runGetInvoice(client) {
+  return client.getInvoice(core.getInput('invoice-id', { required: true }))
+}
+
+async function runPayInvoice(client) {
+  return client.payInvoice(core.getInput('invoice-id', { required: true }))
+}
+
+async function runListInvoices(client) {
+  return client.listInvoices({
+    customer: optionalInput('customer-id'),
+    status: optionalInput('status'),
+    limit: optionalNumber('limit'),
+  })
+}
+
 // -- Refunds ------------------------------------------------------------------
 
 async function runCreateRefund(client) {
-  const paymentIntent = core.getInput('payment-id', { required: true })
-  const amountInput = core.getInput('amount')
-  const amount = amountInput ? Number(amountInput) : undefined
-  const reason = core.getInput('reason') || undefined
-  return client.createRefund({ paymentIntent, amount, reason })
+  return client.createRefund({
+    paymentIntent: core.getInput('payment-id', { required: true }),
+    amount: optionalNumber('amount'),
+    reason: optionalInput('reason'),
+  })
 }
 
 async function runGetRefund(client) {
-  const refundId = core.getInput('refund-id', { required: true })
-  return client.getRefund(refundId)
+  return client.getRefund(core.getInput('refund-id', { required: true }))
+}
+
+async function runListRefunds(client) {
+  return client.listRefunds({
+    paymentIntent: optionalInput('payment-id'),
+    limit: optionalNumber('limit'),
+  })
 }
 
 // -- Payouts ------------------------------------------------------------------
 
 async function runCreatePayout(client) {
-  const amount = core.getInput('amount', { required: true })
-  const currency = core.getInput('currency') || undefined
-  const description = core.getInput('description') || undefined
-  return client.createPayout({ amount, currency, description })
+  return client.createPayout({
+    amount: core.getInput('amount', { required: true }),
+    currency: optionalInput('currency'),
+    description: optionalInput('description'),
+  })
 }
 
 async function runGetPayout(client) {
-  const payoutId = core.getInput('payout-id', { required: true })
-  return client.getPayout(payoutId)
+  return client.getPayout(core.getInput('payout-id', { required: true }))
+}
+
+async function runCancelPayout(client) {
+  return client.cancelPayout(core.getInput('payout-id', { required: true }))
+}
+
+async function runListPayouts(client) {
+  return client.listPayouts({
+    status: optionalInput('status'),
+    limit: optionalNumber('limit'),
+  })
+}
+
+// -- Transfers ----------------------------------------------------------------
+
+async function runCreateTransfer(client) {
+  return client.createTransfer({
+    amount: core.getInput('amount', { required: true }),
+    currency: optionalInput('currency'),
+    destination: core.getInput('destination', { required: true }),
+    description: optionalInput('description'),
+  })
+}
+
+async function runGetTransfer(client) {
+  return client.getTransfer(core.getInput('transfer-id', { required: true }))
+}
+
+async function runListTransfers(client) {
+  return client.listTransfers({
+    destination: optionalInput('destination'),
+    limit: optionalNumber('limit'),
+  })
 }
 
 // -- Job summary --------------------------------------------------------------

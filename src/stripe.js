@@ -64,9 +64,27 @@ export class StripeClient {
     )
   }
 
+  async capturePayment(paymentId, { amountToCapture } = {}) {
+    if (!paymentId) throw new StripeError('payment-id is required', { code: 'MISSING_PAYMENT_ID' })
+    const params = {}
+    if (amountToCapture) params.amount_to_capture = String(amountToCapture)
+    return this.request(
+      'POST',
+      `/v1/payment_intents/${encodeURIComponent(paymentId)}/capture`,
+      params,
+    )
+  }
+
   async cancelPayment(paymentId) {
     if (!paymentId) throw new StripeError('payment-id is required', { code: 'MISSING_PAYMENT_ID' })
     return this.request('POST', `/v1/payment_intents/${encodeURIComponent(paymentId)}/cancel`)
+  }
+
+  async listPayments({ customer, limit = 10 } = {}) {
+    const params = new URLSearchParams()
+    if (customer) params.set('customer', customer)
+    params.set('limit', String(limit))
+    return this.request('GET', `/v1/payment_intents?${params.toString()}`)
   }
 
   // ---------------------------------------------------------------------------
@@ -92,6 +110,27 @@ export class StripeClient {
     return this.request('GET', `/v1/customers/${encodeURIComponent(customerId)}`)
   }
 
+  async updateCustomer(customerId, { email, name, description, metadata }) {
+    if (!customerId)
+      throw new StripeError('customer-id is required', { code: 'MISSING_CUSTOMER_ID' })
+    const params = {}
+    if (email) params.email = email
+    if (name) params.name = name
+    if (description) params.description = description
+    if (metadata) {
+      for (const [k, v] of Object.entries(metadata)) {
+        params[`metadata[${k}]`] = v
+      }
+    }
+    return this.request('POST', `/v1/customers/${encodeURIComponent(customerId)}`, params)
+  }
+
+  async deleteCustomer(customerId) {
+    if (!customerId)
+      throw new StripeError('customer-id is required', { code: 'MISSING_CUSTOMER_ID' })
+    return this.request('DELETE', `/v1/customers/${encodeURIComponent(customerId)}`)
+  }
+
   async listCustomers({ email, limit = 10 } = {}) {
     const params = new URLSearchParams()
     if (email) params.set('email', email)
@@ -105,6 +144,135 @@ export class StripeClient {
 
   async getBalance() {
     return this.request('GET', '/v1/balance')
+  }
+
+  async listBalanceTransactions({ limit = 10, type } = {}) {
+    const params = new URLSearchParams()
+    params.set('limit', String(limit))
+    if (type) params.set('type', type)
+    return this.request('GET', `/v1/balance_transactions?${params.toString()}`)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Products & Prices
+  // ---------------------------------------------------------------------------
+
+  async createProduct({ name, description, metadata }) {
+    if (!name) throw new StripeError('name is required', { code: 'MISSING_NAME' })
+    const params = { name }
+    if (description) params.description = description
+    if (metadata) {
+      for (const [k, v] of Object.entries(metadata)) {
+        params[`metadata[${k}]`] = v
+      }
+    }
+    return this.request('POST', '/v1/products', params)
+  }
+
+  async getProduct(productId) {
+    if (!productId) throw new StripeError('product-id is required', { code: 'MISSING_PRODUCT_ID' })
+    return this.request('GET', `/v1/products/${encodeURIComponent(productId)}`)
+  }
+
+  async listProducts({ limit = 10 } = {}) {
+    return this.request('GET', `/v1/products?limit=${limit}`)
+  }
+
+  async createPrice({ product, unitAmount, currency = 'usd', recurring }) {
+    if (!product) throw new StripeError('product-id is required', { code: 'MISSING_PRODUCT_ID' })
+    if (!unitAmount)
+      throw new StripeError('unit-amount is required', { code: 'MISSING_UNIT_AMOUNT' })
+    const params = {
+      product,
+      unit_amount: String(unitAmount),
+      currency,
+    }
+    if (recurring) {
+      params['recurring[interval]'] = recurring
+    }
+    return this.request('POST', '/v1/prices', params)
+  }
+
+  async getPrice(priceId) {
+    if (!priceId) throw new StripeError('price-id is required', { code: 'MISSING_PRICE_ID' })
+    return this.request('GET', `/v1/prices/${encodeURIComponent(priceId)}`)
+  }
+
+  async listPrices({ product, limit = 10 } = {}) {
+    const params = new URLSearchParams()
+    if (product) params.set('product', product)
+    params.set('limit', String(limit))
+    return this.request('GET', `/v1/prices?${params.toString()}`)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Subscriptions
+  // ---------------------------------------------------------------------------
+
+  async createSubscription({ customer, price, metadata }) {
+    if (!customer) throw new StripeError('customer-id is required', { code: 'MISSING_CUSTOMER_ID' })
+    if (!price) throw new StripeError('price-id is required', { code: 'MISSING_PRICE_ID' })
+    const params = { customer, 'items[0][price]': price }
+    if (metadata) {
+      for (const [k, v] of Object.entries(metadata)) {
+        params[`metadata[${k}]`] = v
+      }
+    }
+    return this.request('POST', '/v1/subscriptions', params)
+  }
+
+  async getSubscription(subscriptionId) {
+    if (!subscriptionId)
+      throw new StripeError('subscription-id is required', { code: 'MISSING_SUBSCRIPTION_ID' })
+    return this.request('GET', `/v1/subscriptions/${encodeURIComponent(subscriptionId)}`)
+  }
+
+  async cancelSubscription(subscriptionId) {
+    if (!subscriptionId)
+      throw new StripeError('subscription-id is required', { code: 'MISSING_SUBSCRIPTION_ID' })
+    return this.request('DELETE', `/v1/subscriptions/${encodeURIComponent(subscriptionId)}`)
+  }
+
+  async listSubscriptions({ customer, status, limit = 10 } = {}) {
+    const params = new URLSearchParams()
+    if (customer) params.set('customer', customer)
+    if (status) params.set('status', status)
+    params.set('limit', String(limit))
+    return this.request('GET', `/v1/subscriptions?${params.toString()}`)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Invoices
+  // ---------------------------------------------------------------------------
+
+  async createInvoice({ customer, description, metadata }) {
+    if (!customer) throw new StripeError('customer-id is required', { code: 'MISSING_CUSTOMER_ID' })
+    const params = { customer }
+    if (description) params.description = description
+    if (metadata) {
+      for (const [k, v] of Object.entries(metadata)) {
+        params[`metadata[${k}]`] = v
+      }
+    }
+    return this.request('POST', '/v1/invoices', params)
+  }
+
+  async getInvoice(invoiceId) {
+    if (!invoiceId) throw new StripeError('invoice-id is required', { code: 'MISSING_INVOICE_ID' })
+    return this.request('GET', `/v1/invoices/${encodeURIComponent(invoiceId)}`)
+  }
+
+  async payInvoice(invoiceId) {
+    if (!invoiceId) throw new StripeError('invoice-id is required', { code: 'MISSING_INVOICE_ID' })
+    return this.request('POST', `/v1/invoices/${encodeURIComponent(invoiceId)}/pay`)
+  }
+
+  async listInvoices({ customer, status, limit = 10 } = {}) {
+    const params = new URLSearchParams()
+    if (customer) params.set('customer', customer)
+    if (status) params.set('status', status)
+    params.set('limit', String(limit))
+    return this.request('GET', `/v1/invoices?${params.toString()}`)
   }
 
   // ---------------------------------------------------------------------------
@@ -125,6 +293,13 @@ export class StripeClient {
     return this.request('GET', `/v1/refunds/${encodeURIComponent(refundId)}`)
   }
 
+  async listRefunds({ paymentIntent, limit = 10 } = {}) {
+    const params = new URLSearchParams()
+    if (paymentIntent) params.set('payment_intent', paymentIntent)
+    params.set('limit', String(limit))
+    return this.request('GET', `/v1/refunds?${params.toString()}`)
+  }
+
   // ---------------------------------------------------------------------------
   // Payouts
   // ---------------------------------------------------------------------------
@@ -139,6 +314,44 @@ export class StripeClient {
   async getPayout(payoutId) {
     if (!payoutId) throw new StripeError('payout-id is required', { code: 'MISSING_PAYOUT_ID' })
     return this.request('GET', `/v1/payouts/${encodeURIComponent(payoutId)}`)
+  }
+
+  async cancelPayout(payoutId) {
+    if (!payoutId) throw new StripeError('payout-id is required', { code: 'MISSING_PAYOUT_ID' })
+    return this.request('POST', `/v1/payouts/${encodeURIComponent(payoutId)}/cancel`)
+  }
+
+  async listPayouts({ status, limit = 10 } = {}) {
+    const params = new URLSearchParams()
+    if (status) params.set('status', status)
+    params.set('limit', String(limit))
+    return this.request('GET', `/v1/payouts?${params.toString()}`)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Transfers (Connect)
+  // ---------------------------------------------------------------------------
+
+  async createTransfer({ amount, currency = 'usd', destination, description }) {
+    if (!amount) throw new StripeError('amount is required', { code: 'MISSING_AMOUNT' })
+    if (!destination)
+      throw new StripeError('destination is required', { code: 'MISSING_DESTINATION' })
+    const params = { amount: String(amount), currency, destination }
+    if (description) params.description = description
+    return this.request('POST', '/v1/transfers', params)
+  }
+
+  async getTransfer(transferId) {
+    if (!transferId)
+      throw new StripeError('transfer-id is required', { code: 'MISSING_TRANSFER_ID' })
+    return this.request('GET', `/v1/transfers/${encodeURIComponent(transferId)}`)
+  }
+
+  async listTransfers({ destination, limit = 10 } = {}) {
+    const params = new URLSearchParams()
+    if (destination) params.set('destination', destination)
+    params.set('limit', String(limit))
+    return this.request('GET', `/v1/transfers?${params.toString()}`)
   }
 
   // ---------------------------------------------------------------------------

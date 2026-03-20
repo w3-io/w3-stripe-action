@@ -7,30 +7,27 @@ commands:
   # -- Payments ----------------------------------------------------------------
 
   - name: create-payment
-    description: >
-      Create a payment intent. Returns a client secret for frontend
-      confirmation or use confirm-payment for server-side flows.
+    description: Create a payment intent. Returns a client secret for confirmation.
     inputs:
       amount:
         type: number
         required: true
-        description: Amount in smallest currency unit (cents). 1000 = $10.00
+        description: Amount in cents (1000 = $10.00)
       currency:
         type: string
         required: false
-        description: 'Three-letter ISO currency code (default: usd)'
+        description: 'ISO currency code (default: usd)'
       customer-id:
         type: string
         required: false
-        description: Attach payment to a customer (cus_...)
+        description: Attach to a customer (cus_...)
       description:
         type: string
         required: false
-        description: Payment description
       metadata:
         type: string
         required: false
-        description: JSON object of key-value metadata
+        description: JSON key-value metadata
     outputs:
       result:
         type: object
@@ -46,7 +43,7 @@ commands:
     outputs:
       result:
         type: object
-        description: '{id, status, amount, currency, charges, ...}'
+        description: '{id, status, amount, currency, charges}'
 
   - name: confirm-payment
     description: Confirm a payment intent server-side.
@@ -54,7 +51,6 @@ commands:
       payment-id:
         type: string
         required: true
-        description: Payment intent ID (pi_...)
       payment-method:
         type: string
         required: false
@@ -62,7 +58,22 @@ commands:
     outputs:
       result:
         type: object
-        description: '{id, status, ...}'
+        description: '{id, status}'
+
+  - name: capture-payment
+    description: Capture a previously authorized payment.
+    inputs:
+      payment-id:
+        type: string
+        required: true
+      amount:
+        type: number
+        required: false
+        description: Partial capture amount in cents
+    outputs:
+      result:
+        type: object
+        description: '{id, status, amount_capturable}'
 
   - name: cancel-payment
     description: Cancel a payment intent.
@@ -70,11 +81,24 @@ commands:
       payment-id:
         type: string
         required: true
-        description: Payment intent ID (pi_...)
     outputs:
       result:
         type: object
-        description: '{id, status: "canceled", ...}'
+        description: '{id, status: "canceled"}'
+
+  - name: list-payments
+    description: List payment intents with optional customer filter.
+    inputs:
+      customer-id:
+        type: string
+        required: false
+      limit:
+        type: number
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{data: [...], has_more}'
 
   # -- Customers ---------------------------------------------------------------
 
@@ -84,23 +108,19 @@ commands:
       email:
         type: string
         required: false
-        description: Customer email
       name:
         type: string
         required: false
-        description: Customer name
       description:
         type: string
         required: false
-        description: Customer description
       metadata:
         type: string
         required: false
-        description: JSON object of key-value metadata
     outputs:
       result:
         type: object
-        description: '{id, email, name, ...}'
+        description: '{id, email, name, created}'
 
   - name: get-customer
     description: Retrieve a customer by ID.
@@ -108,11 +128,44 @@ commands:
       customer-id:
         type: string
         required: true
-        description: Customer ID (cus_...)
     outputs:
       result:
         type: object
-        description: '{id, email, name, ...}'
+        description: '{id, email, name}'
+
+  - name: update-customer
+    description: Update a customer's details.
+    inputs:
+      customer-id:
+        type: string
+        required: true
+      email:
+        type: string
+        required: false
+      name:
+        type: string
+        required: false
+      description:
+        type: string
+        required: false
+      metadata:
+        type: string
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{id, email, name}'
+
+  - name: delete-customer
+    description: Delete a customer.
+    inputs:
+      customer-id:
+        type: string
+        required: true
+    outputs:
+      result:
+        type: object
+        description: '{id, deleted: true}'
 
   - name: list-customers
     description: List customers with optional email filter.
@@ -120,15 +173,13 @@ commands:
       email:
         type: string
         required: false
-        description: Filter by exact email
       limit:
         type: number
         required: false
-        description: 'Max results (default: 10)'
     outputs:
       result:
         type: object
-        description: '{data: [{id, email, name}], has_more}'
+        description: '{data: [...], has_more}'
 
   # -- Balance -----------------------------------------------------------------
 
@@ -140,6 +191,229 @@ commands:
         type: object
         description: '{available: [{amount, currency}], pending: [{amount, currency}]}'
 
+  - name: list-balance-transactions
+    description: List balance transactions for reconciliation.
+    inputs:
+      type:
+        type: string
+        required: false
+        description: 'Filter by type: charge, refund, payout, transfer, etc.'
+      limit:
+        type: number
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{data: [{id, amount, type, created}], has_more}'
+
+  # -- Products ----------------------------------------------------------------
+
+  - name: create-product
+    description: Create a product (required before creating prices).
+    inputs:
+      name:
+        type: string
+        required: true
+      description:
+        type: string
+        required: false
+      metadata:
+        type: string
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{id, name, description}'
+
+  - name: get-product
+    description: Retrieve a product by ID.
+    inputs:
+      product-id:
+        type: string
+        required: true
+    outputs:
+      result:
+        type: object
+        description: '{id, name, description, default_price}'
+
+  - name: list-products
+    description: List products.
+    inputs:
+      limit:
+        type: number
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{data: [...], has_more}'
+
+  # -- Prices ------------------------------------------------------------------
+
+  - name: create-price
+    description: Create a price for a product (one-time or recurring).
+    inputs:
+      product-id:
+        type: string
+        required: true
+      unit-amount:
+        type: number
+        required: true
+        description: Price per unit in cents
+      currency:
+        type: string
+        required: false
+      recurring-interval:
+        type: string
+        required: false
+        description: 'For subscriptions: day, week, month, or year'
+    outputs:
+      result:
+        type: object
+        description: '{id, product, unit_amount, currency, recurring}'
+
+  - name: get-price
+    description: Retrieve a price by ID.
+    inputs:
+      price-id:
+        type: string
+        required: true
+    outputs:
+      result:
+        type: object
+        description: '{id, product, unit_amount, currency}'
+
+  - name: list-prices
+    description: List prices with optional product filter.
+    inputs:
+      product-id:
+        type: string
+        required: false
+      limit:
+        type: number
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{data: [...], has_more}'
+
+  # -- Subscriptions -----------------------------------------------------------
+
+  - name: create-subscription
+    description: Create a recurring subscription for a customer.
+    inputs:
+      customer-id:
+        type: string
+        required: true
+      price-id:
+        type: string
+        required: true
+      metadata:
+        type: string
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{id, status, customer, current_period_end}'
+
+  - name: get-subscription
+    description: Retrieve a subscription by ID.
+    inputs:
+      subscription-id:
+        type: string
+        required: true
+    outputs:
+      result:
+        type: object
+        description: '{id, status, customer, current_period_start, current_period_end}'
+
+  - name: cancel-subscription
+    description: Cancel a subscription immediately.
+    inputs:
+      subscription-id:
+        type: string
+        required: true
+    outputs:
+      result:
+        type: object
+        description: '{id, status: "canceled"}'
+
+  - name: list-subscriptions
+    description: List subscriptions with optional filters.
+    inputs:
+      customer-id:
+        type: string
+        required: false
+      status:
+        type: string
+        required: false
+        description: 'Filter: active, canceled, past_due, etc.'
+      limit:
+        type: number
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{data: [...], has_more}'
+
+  # -- Invoices ----------------------------------------------------------------
+
+  - name: create-invoice
+    description: Create a draft invoice for a customer.
+    inputs:
+      customer-id:
+        type: string
+        required: true
+      description:
+        type: string
+        required: false
+      metadata:
+        type: string
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{id, status, customer, total}'
+
+  - name: get-invoice
+    description: Retrieve an invoice by ID.
+    inputs:
+      invoice-id:
+        type: string
+        required: true
+    outputs:
+      result:
+        type: object
+        description: '{id, status, customer, total, amount_paid, amount_due}'
+
+  - name: pay-invoice
+    description: Pay an open invoice.
+    inputs:
+      invoice-id:
+        type: string
+        required: true
+    outputs:
+      result:
+        type: object
+        description: '{id, status: "paid", amount_paid}'
+
+  - name: list-invoices
+    description: List invoices with optional filters.
+    inputs:
+      customer-id:
+        type: string
+        required: false
+      status:
+        type: string
+        required: false
+        description: 'Filter: draft, open, paid, void, uncollectible'
+      limit:
+        type: number
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{data: [...], has_more}'
+
   # -- Refunds -----------------------------------------------------------------
 
   - name: create-refund
@@ -148,15 +422,14 @@ commands:
       payment-id:
         type: string
         required: true
-        description: Payment intent ID to refund (pi_...)
       amount:
         type: number
         required: false
-        description: Partial refund amount in cents (omit for full refund)
+        description: Partial refund in cents (omit for full)
       reason:
         type: string
         required: false
-        description: 'Reason: duplicate, fraudulent, or requested_by_customer'
+        description: 'duplicate, fraudulent, or requested_by_customer'
     outputs:
       result:
         type: object
@@ -168,11 +441,24 @@ commands:
       refund-id:
         type: string
         required: true
-        description: Refund ID (re_...)
     outputs:
       result:
         type: object
         description: '{id, status, amount, payment_intent}'
+
+  - name: list-refunds
+    description: List refunds with optional payment filter.
+    inputs:
+      payment-id:
+        type: string
+        required: false
+      limit:
+        type: number
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{data: [...], has_more}'
 
   # -- Payouts -----------------------------------------------------------------
 
@@ -182,15 +468,12 @@ commands:
       amount:
         type: number
         required: true
-        description: Payout amount in cents
       currency:
         type: string
         required: false
-        description: 'Currency (default: usd)'
       description:
         type: string
         required: false
-        description: Payout description
     outputs:
       result:
         type: object
@@ -202,8 +485,80 @@ commands:
       payout-id:
         type: string
         required: true
-        description: Payout ID (po_...)
     outputs:
       result:
         type: object
-        description: '{id, status, amount, currency, arrival_date}'
+        description: '{id, status, amount, arrival_date}'
+
+  - name: cancel-payout
+    description: Cancel a pending payout.
+    inputs:
+      payout-id:
+        type: string
+        required: true
+    outputs:
+      result:
+        type: object
+        description: '{id, status: "canceled"}'
+
+  - name: list-payouts
+    description: List payouts with optional status filter.
+    inputs:
+      status:
+        type: string
+        required: false
+      limit:
+        type: number
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{data: [...], has_more}'
+
+  # -- Transfers (Connect) -----------------------------------------------------
+
+  - name: create-transfer
+    description: Transfer funds to a connected Stripe account.
+    inputs:
+      amount:
+        type: number
+        required: true
+      currency:
+        type: string
+        required: false
+      destination:
+        type: string
+        required: true
+        description: Connected account ID (acct_...)
+      description:
+        type: string
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{id, amount, destination, created}'
+
+  - name: get-transfer
+    description: Retrieve a transfer by ID.
+    inputs:
+      transfer-id:
+        type: string
+        required: true
+    outputs:
+      result:
+        type: object
+        description: '{id, amount, destination}'
+
+  - name: list-transfers
+    description: List transfers with optional destination filter.
+    inputs:
+      destination:
+        type: string
+        required: false
+      limit:
+        type: number
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{data: [...], has_more}'

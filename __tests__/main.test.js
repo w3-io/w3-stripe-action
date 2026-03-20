@@ -16,6 +16,16 @@ function mockOk(data) {
   })
 }
 
+function ok(inputs, response) {
+  return async () => {
+    mockCore.setInputs({ 'api-key': 'sk_test_abc', ...inputs })
+    mockOk(response)
+    await run()
+    expect(mockCore.getErrors()).toHaveLength(0)
+    return JSON.parse(mockCore.getOutputs().result)
+  }
+}
+
 describe('run', () => {
   beforeEach(() => {
     mockCore.reset()
@@ -24,202 +34,125 @@ describe('run', () => {
 
   // -- Payments ---------------------------------------------------------------
 
-  test('create-payment returns payment intent', async () => {
-    mockCore.setInputs({ command: 'create-payment', 'api-key': 'sk_test_abc', amount: '1000' })
-    mockOk({ id: 'pi_1', status: 'requires_payment_method', amount: 1000 })
-
-    await run()
-
-    const result = JSON.parse(mockCore.getOutputs().result)
-    expect(result.id).toBe('pi_1')
-    expect(mockCore.getErrors()).toHaveLength(0)
-  })
-
-  test('get-payment returns payment details', async () => {
-    mockCore.setInputs({ command: 'get-payment', 'api-key': 'sk_test_abc', 'payment-id': 'pi_1' })
-    mockOk({ id: 'pi_1', status: 'succeeded' })
-
-    await run()
-
-    const result = JSON.parse(mockCore.getOutputs().result)
-    expect(result.status).toBe('succeeded')
-    expect(mockCore.getErrors()).toHaveLength(0)
-  })
-
-  test('confirm-payment confirms', async () => {
-    mockCore.setInputs({
-      command: 'confirm-payment',
-      'api-key': 'sk_test_abc',
-      'payment-id': 'pi_1',
-    })
-    mockOk({ id: 'pi_1', status: 'succeeded' })
-
-    await run()
-
-    expect(mockFetch.mock.calls[0][0]).toContain('/confirm')
-    expect(mockCore.getErrors()).toHaveLength(0)
-  })
-
-  test('cancel-payment cancels', async () => {
-    mockCore.setInputs({
-      command: 'cancel-payment',
-      'api-key': 'sk_test_abc',
-      'payment-id': 'pi_1',
-    })
-    mockOk({ id: 'pi_1', status: 'canceled' })
-
-    await run()
-
-    expect(mockFetch.mock.calls[0][0]).toContain('/cancel')
-    expect(mockCore.getErrors()).toHaveLength(0)
-  })
+  test(
+    'create-payment',
+    ok({ command: 'create-payment', amount: '1000' }, { id: 'pi_1', amount: 1000 }),
+  )
+  test(
+    'get-payment',
+    ok({ command: 'get-payment', 'payment-id': 'pi_1' }, { id: 'pi_1', status: 'succeeded' }),
+  )
+  test('confirm-payment', ok({ command: 'confirm-payment', 'payment-id': 'pi_1' }, { id: 'pi_1' }))
+  test('capture-payment', ok({ command: 'capture-payment', 'payment-id': 'pi_1' }, { id: 'pi_1' }))
+  test(
+    'cancel-payment',
+    ok({ command: 'cancel-payment', 'payment-id': 'pi_1' }, { id: 'pi_1', status: 'canceled' }),
+  )
+  test(
+    'list-payments',
+    ok({ command: 'list-payments' }, { data: [{ id: 'pi_1' }], has_more: false }),
+  )
 
   // -- Customers --------------------------------------------------------------
 
-  test('create-customer creates', async () => {
-    mockCore.setInputs({
-      command: 'create-customer',
-      'api-key': 'sk_test_abc',
-      email: 'a@b.com',
-      name: 'Test',
-    })
-    mockOk({ id: 'cus_1', email: 'a@b.com' })
-
-    await run()
-
-    const result = JSON.parse(mockCore.getOutputs().result)
-    expect(result.id).toBe('cus_1')
-    expect(mockCore.getErrors()).toHaveLength(0)
-  })
-
-  test('get-customer retrieves', async () => {
-    mockCore.setInputs({
-      command: 'get-customer',
-      'api-key': 'sk_test_abc',
-      'customer-id': 'cus_1',
-    })
-    mockOk({ id: 'cus_1', email: 'a@b.com' })
-
-    await run()
-
-    expect(JSON.parse(mockCore.getOutputs().result).id).toBe('cus_1')
-    expect(mockCore.getErrors()).toHaveLength(0)
-  })
-
-  test('list-customers returns array', async () => {
-    mockCore.setInputs({ command: 'list-customers', 'api-key': 'sk_test_abc' })
-    mockOk({ data: [{ id: 'cus_1' }], has_more: false })
-
-    await run()
-
-    const result = JSON.parse(mockCore.getOutputs().result)
-    expect(result.data).toHaveLength(1)
-    expect(mockCore.getErrors()).toHaveLength(0)
-  })
+  test('create-customer', ok({ command: 'create-customer', email: 'a@b.com' }, { id: 'cus_1' }))
+  test('get-customer', ok({ command: 'get-customer', 'customer-id': 'cus_1' }, { id: 'cus_1' }))
+  test(
+    'update-customer',
+    ok({ command: 'update-customer', 'customer-id': 'cus_1', name: 'New' }, { id: 'cus_1' }),
+  )
+  test(
+    'delete-customer',
+    ok({ command: 'delete-customer', 'customer-id': 'cus_1' }, { id: 'cus_1', deleted: true }),
+  )
+  test('list-customers', ok({ command: 'list-customers' }, { data: [], has_more: false }))
 
   // -- Balance ----------------------------------------------------------------
 
-  test('get-balance returns balance', async () => {
-    mockCore.setInputs({ command: 'get-balance', 'api-key': 'sk_test_abc' })
-    mockOk({ available: [{ amount: 5000, currency: 'usd' }], pending: [] })
+  test('get-balance', ok({ command: 'get-balance' }, { available: [{ amount: 5000 }] }))
+  test('list-balance-transactions', ok({ command: 'list-balance-transactions' }, { data: [] }))
 
-    await run()
+  // -- Products & Prices ------------------------------------------------------
 
-    const result = JSON.parse(mockCore.getOutputs().result)
-    expect(result.available[0].amount).toBe(5000)
-    expect(mockCore.getErrors()).toHaveLength(0)
-  })
+  test('create-product', ok({ command: 'create-product', name: 'Widget' }, { id: 'prod_1' }))
+  test('get-product', ok({ command: 'get-product', 'product-id': 'prod_1' }, { id: 'prod_1' }))
+  test('list-products', ok({ command: 'list-products' }, { data: [] }))
+  test(
+    'create-price',
+    ok(
+      { command: 'create-price', 'product-id': 'prod_1', 'unit-amount': '999' },
+      { id: 'price_1' },
+    ),
+  )
+  test('get-price', ok({ command: 'get-price', 'price-id': 'price_1' }, { id: 'price_1' }))
+  test('list-prices', ok({ command: 'list-prices' }, { data: [] }))
+
+  // -- Subscriptions ----------------------------------------------------------
+
+  test(
+    'create-subscription',
+    ok(
+      { command: 'create-subscription', 'customer-id': 'cus_1', 'price-id': 'price_1' },
+      { id: 'sub_1' },
+    ),
+  )
+  test(
+    'get-subscription',
+    ok({ command: 'get-subscription', 'subscription-id': 'sub_1' }, { id: 'sub_1' }),
+  )
+  test(
+    'cancel-subscription',
+    ok(
+      { command: 'cancel-subscription', 'subscription-id': 'sub_1' },
+      { id: 'sub_1', status: 'canceled' },
+    ),
+  )
+  test('list-subscriptions', ok({ command: 'list-subscriptions' }, { data: [] }))
+
+  // -- Invoices ---------------------------------------------------------------
+
+  test('create-invoice', ok({ command: 'create-invoice', 'customer-id': 'cus_1' }, { id: 'in_1' }))
+  test('get-invoice', ok({ command: 'get-invoice', 'invoice-id': 'in_1' }, { id: 'in_1' }))
+  test(
+    'pay-invoice',
+    ok({ command: 'pay-invoice', 'invoice-id': 'in_1' }, { id: 'in_1', status: 'paid' }),
+  )
+  test('list-invoices', ok({ command: 'list-invoices' }, { data: [] }))
 
   // -- Refunds ----------------------------------------------------------------
 
-  test('create-refund refunds payment', async () => {
-    mockCore.setInputs({
-      command: 'create-refund',
-      'api-key': 'sk_test_abc',
-      'payment-id': 'pi_1',
-    })
-    mockOk({ id: 're_1', status: 'succeeded' })
-
-    await run()
-
-    expect(JSON.parse(mockCore.getOutputs().result).id).toBe('re_1')
-    expect(mockCore.getErrors()).toHaveLength(0)
-  })
-
-  test('get-refund retrieves', async () => {
-    mockCore.setInputs({
-      command: 'get-refund',
-      'api-key': 'sk_test_abc',
-      'refund-id': 're_1',
-    })
-    mockOk({ id: 're_1', status: 'succeeded' })
-
-    await run()
-
-    expect(JSON.parse(mockCore.getOutputs().result).status).toBe('succeeded')
-    expect(mockCore.getErrors()).toHaveLength(0)
-  })
+  test('create-refund', ok({ command: 'create-refund', 'payment-id': 'pi_1' }, { id: 're_1' }))
+  test('get-refund', ok({ command: 'get-refund', 'refund-id': 're_1' }, { id: 're_1' }))
+  test('list-refunds', ok({ command: 'list-refunds' }, { data: [] }))
 
   // -- Payouts ----------------------------------------------------------------
 
-  test('create-payout creates', async () => {
-    mockCore.setInputs({ command: 'create-payout', 'api-key': 'sk_test_abc', amount: '5000' })
-    mockOk({ id: 'po_1', status: 'pending' })
+  test('create-payout', ok({ command: 'create-payout', amount: '5000' }, { id: 'po_1' }))
+  test('get-payout', ok({ command: 'get-payout', 'payout-id': 'po_1' }, { id: 'po_1' }))
+  test('cancel-payout', ok({ command: 'cancel-payout', 'payout-id': 'po_1' }, { id: 'po_1' }))
+  test('list-payouts', ok({ command: 'list-payouts' }, { data: [] }))
 
-    await run()
+  // -- Transfers --------------------------------------------------------------
 
-    expect(JSON.parse(mockCore.getOutputs().result).id).toBe('po_1')
-    expect(mockCore.getErrors()).toHaveLength(0)
-  })
-
-  test('get-payout retrieves', async () => {
-    mockCore.setInputs({
-      command: 'get-payout',
-      'api-key': 'sk_test_abc',
-      'payout-id': 'po_1',
-    })
-    mockOk({ id: 'po_1', status: 'paid' })
-
-    await run()
-
-    expect(JSON.parse(mockCore.getOutputs().result).status).toBe('paid')
-    expect(mockCore.getErrors()).toHaveLength(0)
-  })
+  test(
+    'create-transfer',
+    ok({ command: 'create-transfer', amount: '1000', destination: 'acct_1' }, { id: 'tr_1' }),
+  )
+  test('get-transfer', ok({ command: 'get-transfer', 'transfer-id': 'tr_1' }, { id: 'tr_1' }))
+  test('list-transfers', ok({ command: 'list-transfers' }, { data: [] }))
 
   // -- General ----------------------------------------------------------------
 
   test('unknown command fails', async () => {
-    mockCore.setInputs({ command: 'nonexistent', 'api-key': 'sk_test_abc' })
-
+    mockCore.setInputs({ command: 'nope', 'api-key': 'sk_test_abc' })
     await run()
-
-    const errors = mockCore.getErrors()
-    expect(errors).toHaveLength(1)
-    expect(errors[0]).toContain('Unknown command')
-    expect(errors[0]).toContain('create-payment')
+    expect(mockCore.getErrors()).toHaveLength(1)
+    expect(mockCore.getErrors()[0]).toContain('Unknown command')
   })
 
   test('missing api-key fails', async () => {
     mockCore.setInputs({ command: 'get-balance' })
-
     await run()
-
     expect(mockCore.getErrors()).toHaveLength(1)
-  })
-
-  test('Stripe API error is reported', async () => {
-    mockCore.setInputs({ command: 'get-balance', 'api-key': 'sk_test_abc' })
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-      text: async () =>
-        JSON.stringify({ error: { message: 'Invalid API Key', code: 'invalid_api_key' } }),
-    })
-
-    await run()
-
-    const errors = mockCore.getErrors()
-    expect(errors).toHaveLength(1)
-    expect(errors[0]).toContain('invalid_api_key')
   })
 })

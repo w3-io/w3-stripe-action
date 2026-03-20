@@ -27322,9 +27322,27 @@ class StripeClient {
     )
   }
 
+  async capturePayment(paymentId, { amountToCapture } = {}) {
+    if (!paymentId) throw new StripeError('payment-id is required', { code: 'MISSING_PAYMENT_ID' })
+    const params = {};
+    if (amountToCapture) params.amount_to_capture = String(amountToCapture);
+    return this.request(
+      'POST',
+      `/v1/payment_intents/${encodeURIComponent(paymentId)}/capture`,
+      params,
+    )
+  }
+
   async cancelPayment(paymentId) {
     if (!paymentId) throw new StripeError('payment-id is required', { code: 'MISSING_PAYMENT_ID' })
     return this.request('POST', `/v1/payment_intents/${encodeURIComponent(paymentId)}/cancel`)
+  }
+
+  async listPayments({ customer, limit = 10 } = {}) {
+    const params = new URLSearchParams();
+    if (customer) params.set('customer', customer);
+    params.set('limit', String(limit));
+    return this.request('GET', `/v1/payment_intents?${params.toString()}`)
   }
 
   // ---------------------------------------------------------------------------
@@ -27350,6 +27368,27 @@ class StripeClient {
     return this.request('GET', `/v1/customers/${encodeURIComponent(customerId)}`)
   }
 
+  async updateCustomer(customerId, { email, name, description, metadata }) {
+    if (!customerId)
+      throw new StripeError('customer-id is required', { code: 'MISSING_CUSTOMER_ID' })
+    const params = {};
+    if (email) params.email = email;
+    if (name) params.name = name;
+    if (description) params.description = description;
+    if (metadata) {
+      for (const [k, v] of Object.entries(metadata)) {
+        params[`metadata[${k}]`] = v;
+      }
+    }
+    return this.request('POST', `/v1/customers/${encodeURIComponent(customerId)}`, params)
+  }
+
+  async deleteCustomer(customerId) {
+    if (!customerId)
+      throw new StripeError('customer-id is required', { code: 'MISSING_CUSTOMER_ID' })
+    return this.request('DELETE', `/v1/customers/${encodeURIComponent(customerId)}`)
+  }
+
   async listCustomers({ email, limit = 10 } = {}) {
     const params = new URLSearchParams();
     if (email) params.set('email', email);
@@ -27363,6 +27402,135 @@ class StripeClient {
 
   async getBalance() {
     return this.request('GET', '/v1/balance')
+  }
+
+  async listBalanceTransactions({ limit = 10, type } = {}) {
+    const params = new URLSearchParams();
+    params.set('limit', String(limit));
+    if (type) params.set('type', type);
+    return this.request('GET', `/v1/balance_transactions?${params.toString()}`)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Products & Prices
+  // ---------------------------------------------------------------------------
+
+  async createProduct({ name, description, metadata }) {
+    if (!name) throw new StripeError('name is required', { code: 'MISSING_NAME' })
+    const params = { name };
+    if (description) params.description = description;
+    if (metadata) {
+      for (const [k, v] of Object.entries(metadata)) {
+        params[`metadata[${k}]`] = v;
+      }
+    }
+    return this.request('POST', '/v1/products', params)
+  }
+
+  async getProduct(productId) {
+    if (!productId) throw new StripeError('product-id is required', { code: 'MISSING_PRODUCT_ID' })
+    return this.request('GET', `/v1/products/${encodeURIComponent(productId)}`)
+  }
+
+  async listProducts({ limit = 10 } = {}) {
+    return this.request('GET', `/v1/products?limit=${limit}`)
+  }
+
+  async createPrice({ product, unitAmount, currency = 'usd', recurring }) {
+    if (!product) throw new StripeError('product-id is required', { code: 'MISSING_PRODUCT_ID' })
+    if (!unitAmount)
+      throw new StripeError('unit-amount is required', { code: 'MISSING_UNIT_AMOUNT' })
+    const params = {
+      product,
+      unit_amount: String(unitAmount),
+      currency,
+    };
+    if (recurring) {
+      params['recurring[interval]'] = recurring;
+    }
+    return this.request('POST', '/v1/prices', params)
+  }
+
+  async getPrice(priceId) {
+    if (!priceId) throw new StripeError('price-id is required', { code: 'MISSING_PRICE_ID' })
+    return this.request('GET', `/v1/prices/${encodeURIComponent(priceId)}`)
+  }
+
+  async listPrices({ product, limit = 10 } = {}) {
+    const params = new URLSearchParams();
+    if (product) params.set('product', product);
+    params.set('limit', String(limit));
+    return this.request('GET', `/v1/prices?${params.toString()}`)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Subscriptions
+  // ---------------------------------------------------------------------------
+
+  async createSubscription({ customer, price, metadata }) {
+    if (!customer) throw new StripeError('customer-id is required', { code: 'MISSING_CUSTOMER_ID' })
+    if (!price) throw new StripeError('price-id is required', { code: 'MISSING_PRICE_ID' })
+    const params = { customer, 'items[0][price]': price };
+    if (metadata) {
+      for (const [k, v] of Object.entries(metadata)) {
+        params[`metadata[${k}]`] = v;
+      }
+    }
+    return this.request('POST', '/v1/subscriptions', params)
+  }
+
+  async getSubscription(subscriptionId) {
+    if (!subscriptionId)
+      throw new StripeError('subscription-id is required', { code: 'MISSING_SUBSCRIPTION_ID' })
+    return this.request('GET', `/v1/subscriptions/${encodeURIComponent(subscriptionId)}`)
+  }
+
+  async cancelSubscription(subscriptionId) {
+    if (!subscriptionId)
+      throw new StripeError('subscription-id is required', { code: 'MISSING_SUBSCRIPTION_ID' })
+    return this.request('DELETE', `/v1/subscriptions/${encodeURIComponent(subscriptionId)}`)
+  }
+
+  async listSubscriptions({ customer, status, limit = 10 } = {}) {
+    const params = new URLSearchParams();
+    if (customer) params.set('customer', customer);
+    if (status) params.set('status', status);
+    params.set('limit', String(limit));
+    return this.request('GET', `/v1/subscriptions?${params.toString()}`)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Invoices
+  // ---------------------------------------------------------------------------
+
+  async createInvoice({ customer, description, metadata }) {
+    if (!customer) throw new StripeError('customer-id is required', { code: 'MISSING_CUSTOMER_ID' })
+    const params = { customer };
+    if (description) params.description = description;
+    if (metadata) {
+      for (const [k, v] of Object.entries(metadata)) {
+        params[`metadata[${k}]`] = v;
+      }
+    }
+    return this.request('POST', '/v1/invoices', params)
+  }
+
+  async getInvoice(invoiceId) {
+    if (!invoiceId) throw new StripeError('invoice-id is required', { code: 'MISSING_INVOICE_ID' })
+    return this.request('GET', `/v1/invoices/${encodeURIComponent(invoiceId)}`)
+  }
+
+  async payInvoice(invoiceId) {
+    if (!invoiceId) throw new StripeError('invoice-id is required', { code: 'MISSING_INVOICE_ID' })
+    return this.request('POST', `/v1/invoices/${encodeURIComponent(invoiceId)}/pay`)
+  }
+
+  async listInvoices({ customer, status, limit = 10 } = {}) {
+    const params = new URLSearchParams();
+    if (customer) params.set('customer', customer);
+    if (status) params.set('status', status);
+    params.set('limit', String(limit));
+    return this.request('GET', `/v1/invoices?${params.toString()}`)
   }
 
   // ---------------------------------------------------------------------------
@@ -27383,6 +27551,13 @@ class StripeClient {
     return this.request('GET', `/v1/refunds/${encodeURIComponent(refundId)}`)
   }
 
+  async listRefunds({ paymentIntent, limit = 10 } = {}) {
+    const params = new URLSearchParams();
+    if (paymentIntent) params.set('payment_intent', paymentIntent);
+    params.set('limit', String(limit));
+    return this.request('GET', `/v1/refunds?${params.toString()}`)
+  }
+
   // ---------------------------------------------------------------------------
   // Payouts
   // ---------------------------------------------------------------------------
@@ -27397,6 +27572,44 @@ class StripeClient {
   async getPayout(payoutId) {
     if (!payoutId) throw new StripeError('payout-id is required', { code: 'MISSING_PAYOUT_ID' })
     return this.request('GET', `/v1/payouts/${encodeURIComponent(payoutId)}`)
+  }
+
+  async cancelPayout(payoutId) {
+    if (!payoutId) throw new StripeError('payout-id is required', { code: 'MISSING_PAYOUT_ID' })
+    return this.request('POST', `/v1/payouts/${encodeURIComponent(payoutId)}/cancel`)
+  }
+
+  async listPayouts({ status, limit = 10 } = {}) {
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    params.set('limit', String(limit));
+    return this.request('GET', `/v1/payouts?${params.toString()}`)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Transfers (Connect)
+  // ---------------------------------------------------------------------------
+
+  async createTransfer({ amount, currency = 'usd', destination, description }) {
+    if (!amount) throw new StripeError('amount is required', { code: 'MISSING_AMOUNT' })
+    if (!destination)
+      throw new StripeError('destination is required', { code: 'MISSING_DESTINATION' })
+    const params = { amount: String(amount), currency, destination };
+    if (description) params.description = description;
+    return this.request('POST', '/v1/transfers', params)
+  }
+
+  async getTransfer(transferId) {
+    if (!transferId)
+      throw new StripeError('transfer-id is required', { code: 'MISSING_TRANSFER_ID' })
+    return this.request('GET', `/v1/transfers/${encodeURIComponent(transferId)}`)
+  }
+
+  async listTransfers({ destination, limit = 10 } = {}) {
+    const params = new URLSearchParams();
+    if (destination) params.set('destination', destination);
+    params.set('limit', String(limit));
+    return this.request('GET', `/v1/transfers?${params.toString()}`)
   }
 
   // ---------------------------------------------------------------------------
@@ -27465,19 +27678,49 @@ const COMMANDS = {
   'create-payment': runCreatePayment,
   'get-payment': runGetPayment,
   'confirm-payment': runConfirmPayment,
+  'capture-payment': runCapturePayment,
   'cancel-payment': runCancelPayment,
+  'list-payments': runListPayments,
   // Customers
   'create-customer': runCreateCustomer,
   'get-customer': runGetCustomer,
+  'update-customer': runUpdateCustomer,
+  'delete-customer': runDeleteCustomer,
   'list-customers': runListCustomers,
   // Balance
   'get-balance': runGetBalance,
+  'list-balance-transactions': runListBalanceTransactions,
+  // Products
+  'create-product': runCreateProduct,
+  'get-product': runGetProduct,
+  'list-products': runListProducts,
+  // Prices
+  'create-price': runCreatePrice,
+  'get-price': runGetPrice,
+  'list-prices': runListPrices,
+  // Subscriptions
+  'create-subscription': runCreateSubscription,
+  'get-subscription': runGetSubscription,
+  'cancel-subscription': runCancelSubscription,
+  'list-subscriptions': runListSubscriptions,
+  // Invoices
+  'create-invoice': runCreateInvoice,
+  'get-invoice': runGetInvoice,
+  'pay-invoice': runPayInvoice,
+  'list-invoices': runListInvoices,
   // Refunds
   'create-refund': runCreateRefund,
   'get-refund': runGetRefund,
+  'list-refunds': runListRefunds,
   // Payouts
   'create-payout': runCreatePayout,
   'get-payout': runGetPayout,
+  'cancel-payout': runCancelPayout,
+  'list-payouts': runListPayouts,
+  // Transfers (Connect)
+  'create-transfer': runCreateTransfer,
+  'get-transfer': runGetTransfer,
+  'list-transfers': runListTransfers,
 };
 
 async function run() {
@@ -27512,55 +27755,95 @@ async function run() {
   }
 }
 
+// -- Helpers ------------------------------------------------------------------
+
+function optionalInput(name) {
+  const val = coreExports.getInput(name);
+  return val || undefined
+}
+
+function optionalNumber(name) {
+  const val = coreExports.getInput(name);
+  return val ? Number(val) : undefined
+}
+
+function optionalJson(name) {
+  const val = coreExports.getInput(name);
+  return val ? JSON.parse(val) : undefined
+}
+
 // -- Payments -----------------------------------------------------------------
 
 async function runCreatePayment(client) {
-  const amount = coreExports.getInput('amount', { required: true });
-  const currency = coreExports.getInput('currency') || undefined;
-  const customer = coreExports.getInput('customer-id') || undefined;
-  const description = coreExports.getInput('description') || undefined;
-  const metadataRaw = coreExports.getInput('metadata') || undefined;
-  const metadata = metadataRaw ? JSON.parse(metadataRaw) : undefined;
-  return client.createPayment({ amount, currency, customer, description, metadata })
+  return client.createPayment({
+    amount: coreExports.getInput('amount', { required: true }),
+    currency: optionalInput('currency'),
+    customer: optionalInput('customer-id'),
+    description: optionalInput('description'),
+    metadata: optionalJson('metadata'),
+  })
 }
 
 async function runGetPayment(client) {
-  const paymentId = coreExports.getInput('payment-id', { required: true });
-  return client.getPayment(paymentId)
+  return client.getPayment(coreExports.getInput('payment-id', { required: true }))
 }
 
 async function runConfirmPayment(client) {
-  const paymentId = coreExports.getInput('payment-id', { required: true });
-  const paymentMethod = coreExports.getInput('payment-method') || undefined;
-  return client.confirmPayment(paymentId, { paymentMethod })
+  return client.confirmPayment(coreExports.getInput('payment-id', { required: true }), {
+    paymentMethod: optionalInput('payment-method'),
+  })
+}
+
+async function runCapturePayment(client) {
+  return client.capturePayment(coreExports.getInput('payment-id', { required: true }), {
+    amountToCapture: optionalNumber('amount'),
+  })
 }
 
 async function runCancelPayment(client) {
-  const paymentId = coreExports.getInput('payment-id', { required: true });
-  return client.cancelPayment(paymentId)
+  return client.cancelPayment(coreExports.getInput('payment-id', { required: true }))
+}
+
+async function runListPayments(client) {
+  return client.listPayments({
+    customer: optionalInput('customer-id'),
+    limit: optionalNumber('limit'),
+  })
 }
 
 // -- Customers ----------------------------------------------------------------
 
 async function runCreateCustomer(client) {
-  const email = coreExports.getInput('email') || undefined;
-  const name = coreExports.getInput('name') || undefined;
-  const description = coreExports.getInput('description') || undefined;
-  const metadataRaw = coreExports.getInput('metadata') || undefined;
-  const metadata = metadataRaw ? JSON.parse(metadataRaw) : undefined;
-  return client.createCustomer({ email, name, description, metadata })
+  return client.createCustomer({
+    email: optionalInput('email'),
+    name: optionalInput('name'),
+    description: optionalInput('description'),
+    metadata: optionalJson('metadata'),
+  })
 }
 
 async function runGetCustomer(client) {
-  const customerId = coreExports.getInput('customer-id', { required: true });
-  return client.getCustomer(customerId)
+  return client.getCustomer(coreExports.getInput('customer-id', { required: true }))
+}
+
+async function runUpdateCustomer(client) {
+  return client.updateCustomer(coreExports.getInput('customer-id', { required: true }), {
+    email: optionalInput('email'),
+    name: optionalInput('name'),
+    description: optionalInput('description'),
+    metadata: optionalJson('metadata'),
+  })
+}
+
+async function runDeleteCustomer(client) {
+  return client.deleteCustomer(coreExports.getInput('customer-id', { required: true }))
 }
 
 async function runListCustomers(client) {
-  const email = coreExports.getInput('email') || undefined;
-  const limitInput = coreExports.getInput('limit');
-  const limit = limitInput ? Number(limitInput) : undefined;
-  return client.listCustomers({ email, limit })
+  return client.listCustomers({
+    email: optionalInput('email'),
+    limit: optionalNumber('limit'),
+  })
 }
 
 // -- Balance ------------------------------------------------------------------
@@ -27569,33 +27852,171 @@ async function runGetBalance(client) {
   return client.getBalance()
 }
 
+async function runListBalanceTransactions(client) {
+  return client.listBalanceTransactions({
+    limit: optionalNumber('limit'),
+    type: optionalInput('type'),
+  })
+}
+
+// -- Products -----------------------------------------------------------------
+
+async function runCreateProduct(client) {
+  return client.createProduct({
+    name: coreExports.getInput('name', { required: true }),
+    description: optionalInput('description'),
+    metadata: optionalJson('metadata'),
+  })
+}
+
+async function runGetProduct(client) {
+  return client.getProduct(coreExports.getInput('product-id', { required: true }))
+}
+
+async function runListProducts(client) {
+  return client.listProducts({ limit: optionalNumber('limit') })
+}
+
+// -- Prices -------------------------------------------------------------------
+
+async function runCreatePrice(client) {
+  return client.createPrice({
+    product: coreExports.getInput('product-id', { required: true }),
+    unitAmount: coreExports.getInput('unit-amount', { required: true }),
+    currency: optionalInput('currency'),
+    recurring: optionalInput('recurring-interval'),
+  })
+}
+
+async function runGetPrice(client) {
+  return client.getPrice(coreExports.getInput('price-id', { required: true }))
+}
+
+async function runListPrices(client) {
+  return client.listPrices({
+    product: optionalInput('product-id'),
+    limit: optionalNumber('limit'),
+  })
+}
+
+// -- Subscriptions ------------------------------------------------------------
+
+async function runCreateSubscription(client) {
+  return client.createSubscription({
+    customer: coreExports.getInput('customer-id', { required: true }),
+    price: coreExports.getInput('price-id', { required: true }),
+    metadata: optionalJson('metadata'),
+  })
+}
+
+async function runGetSubscription(client) {
+  return client.getSubscription(coreExports.getInput('subscription-id', { required: true }))
+}
+
+async function runCancelSubscription(client) {
+  return client.cancelSubscription(coreExports.getInput('subscription-id', { required: true }))
+}
+
+async function runListSubscriptions(client) {
+  return client.listSubscriptions({
+    customer: optionalInput('customer-id'),
+    status: optionalInput('status'),
+    limit: optionalNumber('limit'),
+  })
+}
+
+// -- Invoices -----------------------------------------------------------------
+
+async function runCreateInvoice(client) {
+  return client.createInvoice({
+    customer: coreExports.getInput('customer-id', { required: true }),
+    description: optionalInput('description'),
+    metadata: optionalJson('metadata'),
+  })
+}
+
+async function runGetInvoice(client) {
+  return client.getInvoice(coreExports.getInput('invoice-id', { required: true }))
+}
+
+async function runPayInvoice(client) {
+  return client.payInvoice(coreExports.getInput('invoice-id', { required: true }))
+}
+
+async function runListInvoices(client) {
+  return client.listInvoices({
+    customer: optionalInput('customer-id'),
+    status: optionalInput('status'),
+    limit: optionalNumber('limit'),
+  })
+}
+
 // -- Refunds ------------------------------------------------------------------
 
 async function runCreateRefund(client) {
-  const paymentIntent = coreExports.getInput('payment-id', { required: true });
-  const amountInput = coreExports.getInput('amount');
-  const amount = amountInput ? Number(amountInput) : undefined;
-  const reason = coreExports.getInput('reason') || undefined;
-  return client.createRefund({ paymentIntent, amount, reason })
+  return client.createRefund({
+    paymentIntent: coreExports.getInput('payment-id', { required: true }),
+    amount: optionalNumber('amount'),
+    reason: optionalInput('reason'),
+  })
 }
 
 async function runGetRefund(client) {
-  const refundId = coreExports.getInput('refund-id', { required: true });
-  return client.getRefund(refundId)
+  return client.getRefund(coreExports.getInput('refund-id', { required: true }))
+}
+
+async function runListRefunds(client) {
+  return client.listRefunds({
+    paymentIntent: optionalInput('payment-id'),
+    limit: optionalNumber('limit'),
+  })
 }
 
 // -- Payouts ------------------------------------------------------------------
 
 async function runCreatePayout(client) {
-  const amount = coreExports.getInput('amount', { required: true });
-  const currency = coreExports.getInput('currency') || undefined;
-  const description = coreExports.getInput('description') || undefined;
-  return client.createPayout({ amount, currency, description })
+  return client.createPayout({
+    amount: coreExports.getInput('amount', { required: true }),
+    currency: optionalInput('currency'),
+    description: optionalInput('description'),
+  })
 }
 
 async function runGetPayout(client) {
-  const payoutId = coreExports.getInput('payout-id', { required: true });
-  return client.getPayout(payoutId)
+  return client.getPayout(coreExports.getInput('payout-id', { required: true }))
+}
+
+async function runCancelPayout(client) {
+  return client.cancelPayout(coreExports.getInput('payout-id', { required: true }))
+}
+
+async function runListPayouts(client) {
+  return client.listPayouts({
+    status: optionalInput('status'),
+    limit: optionalNumber('limit'),
+  })
+}
+
+// -- Transfers ----------------------------------------------------------------
+
+async function runCreateTransfer(client) {
+  return client.createTransfer({
+    amount: coreExports.getInput('amount', { required: true }),
+    currency: optionalInput('currency'),
+    destination: coreExports.getInput('destination', { required: true }),
+    description: optionalInput('description'),
+  })
+}
+
+async function runGetTransfer(client) {
+  return client.getTransfer(coreExports.getInput('transfer-id', { required: true }))
+}
+
+async function runListTransfers(client) {
+  return client.listTransfers({
+    destination: optionalInput('destination'),
+    limit: optionalNumber('limit'),
+  })
 }
 
 // -- Job summary --------------------------------------------------------------

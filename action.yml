@@ -1,14 +1,13 @@
 name: 'W3 Stripe Action'
-description: 'Payments, payouts, customers, refunds, and balance via Stripe API'
+description: 'Complete Stripe integration — payments, customers, subscriptions, invoices, products, prices, refunds, payouts, balance, and transfers'
 author: 'w3-io'
 
 inputs:
   command:
     description: >
-      Operation to perform. Payments: create-payment, get-payment,
-      confirm-payment, cancel-payment. Customers: create-customer,
-      get-customer, list-customers. Balance: get-balance. Refunds:
-      create-refund, get-refund. Payouts: create-payout, get-payout.
+      Operation to perform. See docs/guide.md for the full list of 37 commands
+      across payments, customers, subscriptions, invoices, products, prices,
+      balance, refunds, payouts, and transfers.
     required: true
   api-key:
     description: 'Stripe API key (sk_test_... or sk_live_...)'
@@ -32,7 +31,7 @@ inputs:
     description: 'Payment method ID for confirm-payment (pm_...)'
     required: false
   description:
-    description: 'Description for payment, customer, or payout'
+    description: 'Description for payment, customer, product, invoice, or payout'
     required: false
   metadata:
     description: 'JSON object of key-value metadata'
@@ -46,7 +45,34 @@ inputs:
     description: 'Customer email address'
     required: false
   name:
-    description: 'Customer name'
+    description: 'Customer or product name'
+    required: false
+
+  # Product/Price inputs
+  product-id:
+    description: 'Product ID (prod_...)'
+    required: false
+  price-id:
+    description: 'Price ID (price_...)'
+    required: false
+  unit-amount:
+    description: 'Price per unit in cents'
+    required: false
+  recurring-interval:
+    description: 'Recurring interval for prices: day, week, month, or year'
+    required: false
+
+  # Subscription inputs
+  subscription-id:
+    description: 'Subscription ID (sub_...)'
+    required: false
+  status:
+    description: 'Filter by status (e.g. active, canceled, past_due)'
+    required: false
+
+  # Invoice inputs
+  invoice-id:
+    description: 'Invoice ID (in_...)'
     required: false
 
   # Refund inputs
@@ -60,6 +86,19 @@ inputs:
   # Payout inputs
   payout-id:
     description: 'Payout ID (po_...)'
+    required: false
+
+  # Transfer inputs (Connect)
+  transfer-id:
+    description: 'Transfer ID (tr_...)'
+    required: false
+  destination:
+    description: 'Connected account ID for transfers (acct_...)'
+    required: false
+
+  # Balance transaction inputs
+  type:
+    description: 'Balance transaction type filter (charge, refund, payout, etc.)'
     required: false
 
   # List inputs
