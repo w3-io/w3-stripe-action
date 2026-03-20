@@ -27280,12 +27280,13 @@ class StripeError extends Error {
 }
 
 class StripeClient {
-  constructor({ apiKey, baseUrl, timeout = 30 } = {}) {
+  constructor({ apiKey, baseUrl, timeout = 30, maxRetries = 3 } = {}) {
     if (!apiKey) throw new StripeError('API key is required', { code: 'MISSING_API_KEY' })
     this.apiKey = apiKey;
     this.authHeader = `Basic ${Buffer.from(apiKey + ':').toString('base64')}`;
     this.baseUrl = baseUrl ? baseUrl.replace(/\/+$/, '') : DEFAULT_BASE_URL;
     this.timeout = timeout * 1000;
+    this.maxRetries = maxRetries;
   }
 
   /**
@@ -27638,58 +27639,85 @@ class StripeClient {
 
   async request(method, path, params) {
     const url = `${this.baseUrl}${path}`;
-    const headers = {
-      Authorization: this.authHeader,
-      Accept: 'application/json',
-    };
 
-    const options = {
-      method,
-      headers,
-      signal: AbortSignal.timeout(this.timeout),
-    };
+    // Idempotency key for POST requests — prevents duplicate charges on retry
+    const idempotencyKey = method === 'POST' ? crypto.randomUUID() : undefined;
 
-    if (params && method === 'POST') {
-      headers['Content-Type'] = 'application/x-www-form-urlencoded';
-      options.body = new URLSearchParams(params).toString();
-    }
-
-    const response = await fetch(url, options);
-    const text = await response.text();
-
-    if (!response.ok) {
-      let errorMessage = `Stripe API error: ${response.status}`;
-      let errorCode = 'API_ERROR';
-      let errorType = undefined;
-      try {
-        const err = JSON.parse(text);
-        if (err.error) {
-          if (err.error.message) errorMessage = err.error.message;
-          if (err.error.code) errorCode = err.error.code;
-          if (err.error.type) errorType = err.error.type;
-        }
-      } catch {
-        // use defaults
+    let lastError;
+    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+      if (attempt > 0) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
+        const jitter = Math.random() * delay * 0.5;
+        await new Promise((resolve) => setTimeout(resolve, delay + jitter));
       }
-      throw new StripeError(errorMessage, {
-        status: response.status,
-        body: text,
-        code: errorCode,
-        type: errorType,
-      })
+
+      const headers = {
+        Authorization: this.authHeader,
+        Accept: 'application/json',
+      };
+
+      if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey;
+
+      const options = {
+        method,
+        headers,
+        signal: AbortSignal.timeout(this.timeout),
+      };
+
+      if (params && method === 'POST') {
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+        options.body = new URLSearchParams(params).toString();
+      }
+
+      const response = await fetch(url, options);
+      const text = await response.text();
+
+      // Retry on 429 (rate limit) and 5xx (server error)
+      if ((response.status === 429 || response.status >= 500) && attempt < this.maxRetries) {
+        lastError = new StripeError(`Stripe API error: ${response.status}`, {
+          status: response.status,
+          body: text,
+          code: response.status === 429 ? 'RATE_LIMITED' : 'SERVER_ERROR',
+        });
+        continue
+      }
+
+      if (!response.ok) {
+        let errorMessage = `Stripe API error: ${response.status}`;
+        let errorCode = 'API_ERROR';
+        let errorType = undefined;
+        try {
+          const err = JSON.parse(text);
+          if (err.error) {
+            if (err.error.message) errorMessage = err.error.message;
+            if (err.error.code) errorCode = err.error.code;
+            if (err.error.type) errorType = err.error.type;
+          }
+        } catch {
+          // use defaults
+        }
+        throw new StripeError(errorMessage, {
+          status: response.status,
+          body: text,
+          code: errorCode,
+          type: errorType,
+        })
+      }
+
+      if (!text || !text.trim()) return {}
+
+      try {
+        return JSON.parse(text)
+      } catch {
+        throw new StripeError('Invalid JSON from Stripe API', {
+          status: response.status,
+          body: text,
+          code: 'PARSE_ERROR',
+        })
+      }
     }
 
-    if (!text || !text.trim()) return {}
-
-    try {
-      return JSON.parse(text)
-    } catch {
-      throw new StripeError('Invalid JSON from Stripe API', {
-        status: response.status,
-        body: text,
-        code: 'PARSE_ERROR',
-      })
-    }
+    throw lastError
   }
 }
 
@@ -27762,10 +27790,12 @@ async function run() {
     }
 
     const timeoutInput = coreExports.getInput('timeout');
+    const maxRetriesInput = coreExports.getInput('max-retries');
     const client = new StripeClient({
       apiKey: coreExports.getInput('api-key', { required: true }),
       baseUrl: coreExports.getInput('api-url') || undefined,
       timeout: timeoutInput ? Number(timeoutInput) : undefined,
+      maxRetries: maxRetriesInput ? Number(maxRetriesInput) : undefined,
     });
 
     const result = await handler(client);

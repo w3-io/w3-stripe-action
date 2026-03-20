@@ -57,8 +57,9 @@ Level 1 certification — the highest level of payment security compliance.
 Use this action to create payment intents, manage customers, issue refunds,
 check balances, and trigger payouts from automated workflows.
 
-Create and manage Stripe payments, customers, refunds, payouts, and balances
-via the Stripe REST API.
+Create and manage Stripe payments, customers, subscriptions, invoices,
+products, prices, refunds, payouts, balance, transfers, disputes, and
+events via the Stripe REST API.
 
 ## Quick start
 
@@ -556,7 +557,7 @@ Transfer funds to a connected Stripe account (for marketplaces).
   with:
     command: create-subscription
     api-key: ${{ secrets.STRIPE_API_KEY }}
-    customer-id: ${{ steps.customer.outputs.customer_id }}
+    customer-id: ${{ fromJSON(steps.customer.outputs.result).id }}
     price-id: ${{ fromJSON(steps.price.outputs.result).id }}
 ```
 
@@ -593,7 +594,7 @@ Transfer funds to a connected Stripe account (for marketplaces).
 
 ## Beyond this W3 integration
 
-This action covers Stripe's core platform with 37 commands. Stripe
+This action covers Stripe's core platform with 41 commands. Stripe
 capabilities not exposed here:
 
 | Layer           | What                                                                                                 | Status              |
@@ -632,6 +633,18 @@ development. Restrict live keys with [Stripe's restricted key
 feature](https://stripe.com/docs/keys#limit-access) to only the
 permissions your workflow needs.
 
+## Retry behavior
+
+The action automatically retries on:
+
+- **429** (rate limited) — exponential backoff with jitter
+- **5xx** (server error) — exponential backoff with jitter
+
+Default: 3 retries. Configure with `max-retries` input. Set to `0` to disable.
+
+POST requests include an `Idempotency-Key` header so retries never
+create duplicate charges, payments, or subscriptions.
+
 ## Error handling
 
 The action fails with a descriptive message on:
@@ -639,4 +652,5 @@ The action fails with a descriptive message on:
 - Missing or invalid API key
 - Missing required inputs (amount, payment-id, etc.)
 - Stripe API errors (card_declined, insufficient_funds, etc.)
+- Rate limit exceeded after max retries
 - Invalid response format

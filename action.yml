@@ -121,6 +121,10 @@ inputs:
     default: '10'
 
   # Request configuration
+  max-retries:
+    description: 'Maximum retry attempts on 429/5xx (default: 3)'
+    required: false
+    default: '3'
   timeout:
     description: 'Request timeout in seconds (default: 30)'
     required: false

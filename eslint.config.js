@@ -16,6 +16,7 @@ export default [
         AbortSignal: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
+        crypto: 'readonly',
       },
     },
   },

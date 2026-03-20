@@ -355,9 +355,8 @@ describe('StripeClient', () => {
   // -- Error handling ---------------------------------------------------------
 
   describe('errors', () => {
-    const c = new StripeClient({ apiKey: 'sk_test_abc' })
-
-    test('parses Stripe error', async () => {
+    test('parses Stripe error (no retry on 4xx)', async () => {
+      const c = new StripeClient({ apiKey: 'sk_test_abc' })
       mockError(
         402,
         JSON.stringify({
@@ -371,15 +370,66 @@ describe('StripeClient', () => {
         expect(e.message).toBe('Card declined')
         expect(e.code).toBe('card_declined')
       }
+      expect(mockFetch).toHaveBeenCalledTimes(1)
     })
 
-    test('handles non-JSON error', async () => {
-      mockError(500, 'Internal Server Error')
+    test('retries on 429 then succeeds', async () => {
+      const c = new StripeClient({ apiKey: 'sk_test_abc', maxRetries: 2 })
+      mockError(429, 'Rate limited')
+      mockOk({ available: [{ amount: 100 }] })
+
+      const result = await c.getBalance()
+
+      expect(result.available[0].amount).toBe(100)
+      expect(mockFetch).toHaveBeenCalledTimes(2)
+    })
+
+    test('retries on 500 then fails after max retries', async () => {
+      const c = new StripeClient({ apiKey: 'sk_test_abc', maxRetries: 1 })
+      mockError(500, 'Server Error')
+      mockError(500, 'Server Error')
+
       try {
         await c.getBalance()
       } catch (e) {
-        expect(e.code).toBe('API_ERROR')
+        expect(e).toBeInstanceOf(StripeError)
+        expect(e.status).toBe(500)
       }
+      expect(mockFetch).toHaveBeenCalledTimes(2)
+    })
+
+    test('no retry on 4xx client errors', async () => {
+      const c = new StripeClient({ apiKey: 'sk_test_abc', maxRetries: 3 })
+      mockError(400, JSON.stringify({ error: { message: 'Bad request', code: 'bad_request' } }))
+
+      try {
+        await c.getBalance()
+      } catch (e) {
+        expect(e.code).toBe('bad_request')
+      }
+      expect(mockFetch).toHaveBeenCalledTimes(1)
+    })
+
+    test('POST includes Idempotency-Key header', async () => {
+      const c = new StripeClient({ apiKey: 'sk_test_abc' })
+      mockOk({ id: 'pi_1' })
+
+      await c.createPayment({ amount: 100 })
+
+      const headers = mockFetch.mock.calls[0][1].headers
+      expect(headers['Idempotency-Key']).toBeDefined()
+      expect(headers['Idempotency-Key']).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+      )
+    })
+
+    test('GET does not include Idempotency-Key', async () => {
+      const c = new StripeClient({ apiKey: 'sk_test_abc' })
+      mockOk({})
+
+      await c.getBalance()
+
+      expect(mockFetch.mock.calls[0][1].headers['Idempotency-Key']).toBeUndefined()
     })
   })
 })

@@ -70,10 +70,12 @@ export async function run() {
     }
 
     const timeoutInput = core.getInput('timeout')
+    const maxRetriesInput = core.getInput('max-retries')
     const client = new StripeClient({
       apiKey: core.getInput('api-key', { required: true }),
       baseUrl: core.getInput('api-url') || undefined,
       timeout: timeoutInput ? Number(timeoutInput) : undefined,
+      maxRetries: maxRetriesInput ? Number(maxRetriesInput) : undefined,
     })
 
     const result = await handler(client)
