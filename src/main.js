@@ -55,6 +55,10 @@ const COMMANDS = {
   // Events
   'get-event': runGetEvent,
   'list-events': runListEvents,
+  // Crypto Onramp
+  'create-onramp-session': runCreateOnrampSession,
+  'get-onramp-session': runGetOnrampSession,
+  'get-onramp-quotes': runGetOnrampQuotes,
 }
 
 export async function run() {
@@ -383,6 +387,53 @@ async function runListEvents(client) {
   return client.listEvents({
     type: optionalInput('event-type'),
     limit: optionalNumber('limit'),
+  })
+}
+
+// -- Crypto Onramp ------------------------------------------------------------
+
+async function runCreateOnrampSession(client) {
+  const walletAddressesRaw = optionalJson('wallet-addresses')
+  const destinationCurrenciesRaw = optionalInput('destination-currencies')
+  const destinationNetworksRaw = optionalInput('destination-networks')
+
+  return client.createOnrampSession({
+    walletAddresses: walletAddressesRaw,
+    lockWalletAddress: optionalInput('lock-wallet-address') === 'true' ? true : undefined,
+    sourceCurrency: optionalInput('source-currency'),
+    sourceAmount: optionalInput('source-amount'),
+    destinationCurrency: optionalInput('destination-currency'),
+    destinationNetwork: optionalInput('destination-network'),
+    destinationAmount: optionalInput('destination-amount'),
+    destinationCurrencies: destinationCurrenciesRaw
+      ? destinationCurrenciesRaw.split(',').map((s) => s.trim())
+      : undefined,
+    destinationNetworks: destinationNetworksRaw
+      ? destinationNetworksRaw.split(',').map((s) => s.trim())
+      : undefined,
+    customerEmail: optionalInput('customer-email'),
+    customerIpAddress: optionalInput('customer-ip-address'),
+  })
+}
+
+async function runGetOnrampSession(client) {
+  return client.getOnrampSession(core.getInput('session-id', { required: true }))
+}
+
+async function runGetOnrampQuotes(client) {
+  const destinationCurrenciesRaw = optionalInput('destination-currencies')
+  const destinationNetworksRaw = optionalInput('destination-networks')
+
+  return client.getOnrampQuotes({
+    sourceCurrency: optionalInput('source-currency') || 'usd',
+    sourceAmount: optionalInput('source-amount'),
+    destinationAmount: optionalInput('destination-amount'),
+    destinationCurrencies: destinationCurrenciesRaw
+      ? destinationCurrenciesRaw.split(',').map((s) => s.trim())
+      : undefined,
+    destinationNetworks: destinationNetworksRaw
+      ? destinationNetworksRaw.split(',').map((s) => s.trim())
+      : undefined,
   })
 }
 

@@ -27634,6 +27634,80 @@ class StripeClient {
   }
 
   // ---------------------------------------------------------------------------
+  // Crypto Onramp
+  // ---------------------------------------------------------------------------
+
+  async createOnrampSession({
+    walletAddresses,
+    lockWalletAddress,
+    sourceCurrency,
+    sourceAmount,
+    destinationCurrency,
+    destinationNetwork,
+    destinationAmount,
+    destinationCurrencies,
+    destinationNetworks,
+    customerEmail,
+    customerIpAddress,
+  }) {
+    const params = {};
+    if (walletAddresses) {
+      for (const [network, address] of Object.entries(walletAddresses)) {
+        params[`wallet_addresses[${network}]`] = address;
+      }
+    }
+    if (lockWalletAddress != null) params.lock_wallet_address = String(lockWalletAddress);
+    if (sourceCurrency) params.source_currency = sourceCurrency;
+    if (sourceAmount) params.source_amount = sourceAmount;
+    if (destinationCurrency) params.destination_currency = destinationCurrency;
+    if (destinationNetwork) params.destination_network = destinationNetwork;
+    if (destinationAmount) params.destination_amount = destinationAmount;
+    if (destinationCurrencies) {
+      destinationCurrencies.forEach((c, i) => {
+        params[`destination_currencies[${i}]`] = c;
+      });
+    }
+    if (destinationNetworks) {
+      destinationNetworks.forEach((n, i) => {
+        params[`destination_networks[${i}]`] = n;
+      });
+    }
+    if (customerEmail) params['customer_information[email]'] = customerEmail;
+    if (customerIpAddress) params.customer_ip_address = customerIpAddress;
+    return this.request('POST', '/v1/crypto/onramp_sessions', params)
+  }
+
+  async getOnrampSession(sessionId) {
+    if (!sessionId)
+      throw new StripeError('session-id is required', { code: 'MISSING_SESSION_ID' })
+    return this.request('GET', `/v1/crypto/onramp_sessions/${encodeURIComponent(sessionId)}`)
+  }
+
+  async getOnrampQuotes({
+    sourceCurrency = 'usd',
+    sourceAmount,
+    destinationAmount,
+    destinationCurrencies,
+    destinationNetworks,
+  } = {}) {
+    const params = new URLSearchParams();
+    params.set('source_currency', sourceCurrency);
+    if (sourceAmount) params.set('source_amount', sourceAmount);
+    if (destinationAmount) params.set('destination_amount', destinationAmount);
+    if (destinationCurrencies) {
+      destinationCurrencies.forEach((c, i) => {
+        params.set(`destination_currencies[${i}]`, c);
+      });
+    }
+    if (destinationNetworks) {
+      destinationNetworks.forEach((n, i) => {
+        params.set(`destination_networks[${i}]`, n);
+      });
+    }
+    return this.request('GET', `/v1/crypto/onramp/quotes?${params.toString()}`)
+  }
+
+  // ---------------------------------------------------------------------------
   // HTTP
   // ---------------------------------------------------------------------------
 
@@ -27775,6 +27849,10 @@ const COMMANDS = {
   // Events
   'get-event': runGetEvent,
   'list-events': runListEvents,
+  // Crypto Onramp
+  'create-onramp-session': runCreateOnrampSession,
+  'get-onramp-session': runGetOnrampSession,
+  'get-onramp-quotes': runGetOnrampQuotes,
 };
 
 async function run() {
@@ -28103,6 +28181,53 @@ async function runListEvents(client) {
   return client.listEvents({
     type: optionalInput('event-type'),
     limit: optionalNumber('limit'),
+  })
+}
+
+// -- Crypto Onramp ------------------------------------------------------------
+
+async function runCreateOnrampSession(client) {
+  const walletAddressesRaw = optionalJson('wallet-addresses');
+  const destinationCurrenciesRaw = optionalInput('destination-currencies');
+  const destinationNetworksRaw = optionalInput('destination-networks');
+
+  return client.createOnrampSession({
+    walletAddresses: walletAddressesRaw,
+    lockWalletAddress: optionalInput('lock-wallet-address') === 'true' ? true : undefined,
+    sourceCurrency: optionalInput('source-currency'),
+    sourceAmount: optionalInput('source-amount'),
+    destinationCurrency: optionalInput('destination-currency'),
+    destinationNetwork: optionalInput('destination-network'),
+    destinationAmount: optionalInput('destination-amount'),
+    destinationCurrencies: destinationCurrenciesRaw
+      ? destinationCurrenciesRaw.split(',').map((s) => s.trim())
+      : undefined,
+    destinationNetworks: destinationNetworksRaw
+      ? destinationNetworksRaw.split(',').map((s) => s.trim())
+      : undefined,
+    customerEmail: optionalInput('customer-email'),
+    customerIpAddress: optionalInput('customer-ip-address'),
+  })
+}
+
+async function runGetOnrampSession(client) {
+  return client.getOnrampSession(coreExports.getInput('session-id', { required: true }))
+}
+
+async function runGetOnrampQuotes(client) {
+  const destinationCurrenciesRaw = optionalInput('destination-currencies');
+  const destinationNetworksRaw = optionalInput('destination-networks');
+
+  return client.getOnrampQuotes({
+    sourceCurrency: optionalInput('source-currency') || 'usd',
+    sourceAmount: optionalInput('source-amount'),
+    destinationAmount: optionalInput('destination-amount'),
+    destinationCurrencies: destinationCurrenciesRaw
+      ? destinationCurrenciesRaw.split(',').map((s) => s.trim())
+      : undefined,
+    destinationNetworks: destinationNetworksRaw
+      ? destinationNetworksRaw.split(',').map((s) => s.trim())
+      : undefined,
   })
 }
 

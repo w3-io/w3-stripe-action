@@ -1,5 +1,5 @@
 name: 'W3 Stripe Action'
-description: 'Complete Stripe integration — payments, customers, subscriptions, invoices, products, prices, refunds, payouts, balance, and transfers'
+description: 'Complete Stripe integration — payments, customers, subscriptions, invoices, products, prices, refunds, payouts, balance, transfers, and crypto onramp'
 author: 'w3-io'
 
 inputs:
@@ -119,6 +119,44 @@ inputs:
     description: 'Maximum results to return (default: 10)'
     required: false
     default: '10'
+
+  # Crypto Onramp inputs
+  session-id:
+    description: 'Onramp session ID (cos_...)'
+    required: false
+  wallet-addresses:
+    description: 'JSON object mapping network to wallet address (e.g. {"ethereum":"0x...","solana":"..."})'
+    required: false
+  lock-wallet-address:
+    description: 'Prevent customer from changing wallet address (true/false)'
+    required: false
+  source-currency:
+    description: 'Fiat currency for onramp (usd or eur)'
+    required: false
+  source-amount:
+    description: 'Fiat amount for onramp (e.g. "100.00")'
+    required: false
+  destination-currency:
+    description: 'Target cryptocurrency (btc, eth, sol, usdc, matic, avax, xlm)'
+    required: false
+  destination-network:
+    description: 'Target blockchain (bitcoin, ethereum, solana, polygon, avalanche, stellar, base)'
+    required: false
+  destination-amount:
+    description: 'Crypto amount to purchase (mutually exclusive with source-amount)'
+    required: false
+  destination-currencies:
+    description: 'Comma-separated list of allowed cryptocurrencies'
+    required: false
+  destination-networks:
+    description: 'Comma-separated list of allowed networks'
+    required: false
+  customer-email:
+    description: 'Customer email for onramp KYC pre-fill'
+    required: false
+  customer-ip-address:
+    description: 'Customer IP for geographic validation'
+    required: false
 
   # Request configuration
   max-retries:

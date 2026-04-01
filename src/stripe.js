@@ -376,6 +376,80 @@ export class StripeClient {
   }
 
   // ---------------------------------------------------------------------------
+  // Crypto Onramp
+  // ---------------------------------------------------------------------------
+
+  async createOnrampSession({
+    walletAddresses,
+    lockWalletAddress,
+    sourceCurrency,
+    sourceAmount,
+    destinationCurrency,
+    destinationNetwork,
+    destinationAmount,
+    destinationCurrencies,
+    destinationNetworks,
+    customerEmail,
+    customerIpAddress,
+  }) {
+    const params = {}
+    if (walletAddresses) {
+      for (const [network, address] of Object.entries(walletAddresses)) {
+        params[`wallet_addresses[${network}]`] = address
+      }
+    }
+    if (lockWalletAddress != null) params.lock_wallet_address = String(lockWalletAddress)
+    if (sourceCurrency) params.source_currency = sourceCurrency
+    if (sourceAmount) params.source_amount = sourceAmount
+    if (destinationCurrency) params.destination_currency = destinationCurrency
+    if (destinationNetwork) params.destination_network = destinationNetwork
+    if (destinationAmount) params.destination_amount = destinationAmount
+    if (destinationCurrencies) {
+      destinationCurrencies.forEach((c, i) => {
+        params[`destination_currencies[${i}]`] = c
+      })
+    }
+    if (destinationNetworks) {
+      destinationNetworks.forEach((n, i) => {
+        params[`destination_networks[${i}]`] = n
+      })
+    }
+    if (customerEmail) params['customer_information[email]'] = customerEmail
+    if (customerIpAddress) params.customer_ip_address = customerIpAddress
+    return this.request('POST', '/v1/crypto/onramp_sessions', params)
+  }
+
+  async getOnrampSession(sessionId) {
+    if (!sessionId)
+      throw new StripeError('session-id is required', { code: 'MISSING_SESSION_ID' })
+    return this.request('GET', `/v1/crypto/onramp_sessions/${encodeURIComponent(sessionId)}`)
+  }
+
+  async getOnrampQuotes({
+    sourceCurrency = 'usd',
+    sourceAmount,
+    destinationAmount,
+    destinationCurrencies,
+    destinationNetworks,
+  } = {}) {
+    const params = new URLSearchParams()
+    params.set('source_currency', sourceCurrency)
+    if (sourceAmount) params.set('source_amount', sourceAmount)
+    if (destinationAmount) params.set('destination_amount', destinationAmount)
+    if (destinationCurrencies) {
+      destinationCurrencies.forEach((c, i) => {
+        params.set(`destination_currencies[${i}]`, c)
+      })
+    }
+    if (destinationNetworks) {
+      destinationNetworks.forEach((n, i) => {
+        params.set(`destination_networks[${i}]`, n)
+      })
+    }
+    return this.request('GET', `/v1/crypto/onramp/quotes?${params.toString()}`)
+  }
+
+  // ---------------------------------------------------------------------------
   // HTTP
   // ---------------------------------------------------------------------------
 
