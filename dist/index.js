@@ -25660,6 +25660,13 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:events"
 
 /***/ }),
 
+/***/ 7067:
+/***/ ((module) => {
+
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:http");
+
+/***/ }),
+
 /***/ 7075:
 /***/ ((module) => {
 
@@ -27418,6 +27425,64 @@ module.exports = parseParams
 /******/ }
 /******/ 
 /************************************************************************/
+/******/ /* webpack/runtime/create fake namespace object */
+/******/ (() => {
+/******/ 	var getProto = Object.getPrototypeOf ? (obj) => (Object.getPrototypeOf(obj)) : (obj) => (obj.__proto__);
+/******/ 	var leafPrototypes;
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 16: return value when it's Promise-like
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__nccwpck_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = this(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if(typeof value === 'object' && value) {
+/******/ 			if((mode & 4) && value.__esModule) return value;
+/******/ 			if((mode & 16) && typeof value.then === 'function') return value;
+/******/ 		}
+/******/ 		var ns = Object.create(null);
+/******/ 		__nccwpck_require__.r(ns);
+/******/ 		var def = {};
+/******/ 		leafPrototypes = leafPrototypes || [null, getProto({}), getProto([]), getProto(getProto)];
+/******/ 		for(var current = mode & 2 && value; typeof current == 'object' && !~leafPrototypes.indexOf(current); current = getProto(current)) {
+/******/ 			Object.getOwnPropertyNames(current).forEach((key) => (def[key] = () => (value[key])));
+/******/ 		}
+/******/ 		def['default'] = () => (value);
+/******/ 		__nccwpck_require__.d(ns, def);
+/******/ 		return ns;
+/******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/define property getters */
+/******/ (() => {
+/******/ 	// define getter functions for harmony exports
+/******/ 	__nccwpck_require__.d = (exports, definition) => {
+/******/ 		for(var key in definition) {
+/******/ 			if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 			}
+/******/ 		}
+/******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/hasOwnProperty shorthand */
+/******/ (() => {
+/******/ 	__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/make namespace object */
+/******/ (() => {
+/******/ 	// define __esModule on exports
+/******/ 	__nccwpck_require__.r = (exports) => {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/ })();
+/******/ 
 /******/ /* webpack/runtime/compat */
 /******/ 
 /******/ if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = new URL('.', import.meta.url).pathname.slice(import.meta.url.match(/^file:\/\/\/\w:/) ? 1 : 0, -1) + "/";
@@ -27426,7 +27491,512 @@ module.exports = parseParams
 var __webpack_exports__ = {};
 
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(7484);
+var lib_core = __nccwpck_require__(7484);
+;// CONCATENATED MODULE: ./node_modules/@w3-io/action-core/dist/input.js
+
+/**
+ * Parse a JSON input. Returns the parsed value or undefined if empty.
+ * Throws with a clear message if the input contains invalid JSON.
+ */
+function parseJsonInput(name) {
+    const raw = core.getInput(name);
+    if (!raw.trim())
+        return undefined;
+    try {
+        return JSON.parse(raw);
+    }
+    catch {
+        throw new Error(`Input '${name}' is not valid JSON: ${raw.slice(0, 100)}`);
+    }
+}
+/**
+ * Get a required input. Throws if missing or empty.
+ */
+function requireInput(name) {
+    const value = core.getInput(name);
+    if (!value.trim()) {
+        throw new Error(`Required input '${name}' is missing`);
+    }
+    return value;
+}
+/**
+ * Get an optional input with a default value.
+ */
+function getOptionalInput(name, defaultValue = "") {
+    const value = core.getInput(name);
+    return value.trim() || defaultValue;
+}
+
+;// CONCATENATED MODULE: ./node_modules/@w3-io/action-core/dist/output.js
+
+/**
+ * Set a JSON output. Serializes exactly once — prevents double-encoding.
+ *
+ * If the value is already a string, it's set directly.
+ * If it's an object/array/number/boolean, it's JSON.stringified once.
+ */
+function setJsonOutput(name, value) {
+    const serialized = typeof value === "string" ? value : JSON.stringify(value);
+    lib_core.setOutput(name, serialized);
+}
+/**
+ * Set multiple outputs at once.
+ */
+function setOutputs(outputs) {
+    for (const [key, value] of Object.entries(outputs)) {
+        setJsonOutput(key, value);
+    }
+}
+
+;// CONCATENATED MODULE: ./node_modules/@w3-io/action-core/dist/error.js
+
+/**
+ * Structured error with code, message, and optional details.
+ */
+class error_W3ActionError extends Error {
+    code;
+    statusCode;
+    details;
+    constructor(code, message, options) {
+        super(message);
+        this.name = "W3ActionError";
+        this.code = code;
+        this.statusCode = options?.statusCode;
+        this.details = options?.details;
+    }
+}
+/**
+ * Top-level error handler for action entry points.
+ *
+ * Usage:
+ *   main().catch(handleError);
+ */
+function handleError(error) {
+    if (error instanceof error_W3ActionError) {
+        lib_core.setOutput("error-code", error.code);
+        if (error.statusCode)
+            lib_core.setOutput("status-code", error.statusCode);
+        lib_core.setFailed(`[${error.code}] ${error.message}`);
+    }
+    else if (error instanceof Error) {
+        lib_core.setFailed(error.message);
+    }
+    else {
+        lib_core.setFailed(String(error));
+    }
+}
+
+;// CONCATENATED MODULE: ./node_modules/@w3-io/action-core/dist/http.js
+
+/**
+ * Make an HTTP request with timeout, retry, and structured errors.
+ *
+ * - Retries on 429 and 5xx with exponential backoff
+ * - Parses JSON response automatically
+ * - Throws W3ActionError with status code on failure
+ */
+async function request(url, options = {}) {
+    const { method = "GET", headers = {}, body, timeout = 30000, retries = 2, retryDelay = 1000, } = options;
+    const init = {
+        method,
+        headers: {
+            "Content-Type": "application/json",
+            ...headers,
+        },
+        signal: AbortSignal.timeout(timeout),
+    };
+    if (body !== undefined) {
+        init.body = typeof body === "string" ? body : JSON.stringify(body);
+    }
+    let lastError;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            const res = await fetch(url, init);
+            const raw = await res.text();
+            let parsed;
+            try {
+                parsed = JSON.parse(raw);
+            }
+            catch {
+                parsed = raw;
+            }
+            const responseHeaders = {};
+            res.headers.forEach((v, k) => {
+                responseHeaders[k] = v;
+            });
+            if (!res.ok) {
+                // Retry on 429 (rate limit) and 5xx (server error)
+                if ((res.status === 429 || res.status >= 500) &&
+                    attempt < retries) {
+                    await sleep(retryDelay * 2 ** attempt);
+                    continue;
+                }
+                throw new W3ActionError("HTTP_ERROR", `${method} ${url}: ${res.status}`, {
+                    statusCode: res.status,
+                    details: parsed,
+                });
+            }
+            return { status: res.status, headers: responseHeaders, body: parsed, raw };
+        }
+        catch (error) {
+            if (error instanceof W3ActionError)
+                throw error;
+            lastError = error instanceof Error ? error : new Error(String(error));
+            if (attempt < retries) {
+                await sleep(retryDelay * 2 ** attempt);
+                continue;
+            }
+        }
+    }
+    throw new W3ActionError("REQUEST_FAILED", `${method} ${url}: ${lastError?.message ?? "unknown error"}`);
+}
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+/**
+ * Convenience: add API key auth header.
+ */
+function apiKeyAuth(key, headerName = "Authorization", prefix = "Bearer") {
+    return { [headerName]: `${prefix} ${key}` };
+}
+/**
+ * Convenience: add basic auth header.
+ */
+function basicAuth(username, password) {
+    const encoded = Buffer.from(`${username}:${password}`).toString("base64");
+    return { Authorization: `Basic ${encoded}` };
+}
+
+;// CONCATENATED MODULE: ./node_modules/@w3-io/action-core/dist/command.js
+
+
+/**
+ * Create a command router that dispatches on the `command` input.
+ *
+ * Usage:
+ *   const router = createCommandRouter({
+ *     "create-payment": async () => { ... },
+ *     "get-payment": async () => { ... },
+ *   });
+ *   router();  // reads `command` input, dispatches, handles errors
+ */
+function createCommandRouter(commands) {
+    return () => {
+        const command = lib_core.getInput("command", { required: true });
+        const handler = commands[command];
+        if (!handler) {
+            const available = Object.keys(commands).join(", ");
+            lib_core.setFailed(`Unknown command: '${command}'. Available: ${available}`);
+            return;
+        }
+        handler().catch(handleError);
+    };
+}
+
+;// CONCATENATED MODULE: ./node_modules/@w3-io/action-core/dist/bridge.js
+/**
+ * W3 Syscall Bridge client.
+ *
+ * The bridge is an HTTP server running on a Unix socket (production)
+ * or TCP port (macOS dev fallback), started per-step by the Docker
+ * backend. It provides access to chain operations, cryptographic
+ * primitives, and protocol-managed secrets without bundling SDKs
+ * in the action container.
+ *
+ * Connection is automatic:
+ *   - $W3_BRIDGE_SOCKET → Unix socket (production)
+ *   - $W3_BRIDGE_URL    → TCP URL (macOS Docker Desktop fallback)
+ *
+ * Usage:
+ *   import { bridge } from "@w3-io/action-core";
+ *
+ *   const balance = await bridge.chain("ethereum", "get-balance", {
+ *     address: "0x...",
+ *   });
+ *
+ *   const hash = await bridge.crypto("keccak-256", { data: "0xdeadbeef" });
+ */
+
+// ---------------------------------------------------------------------------
+// Transport
+// ---------------------------------------------------------------------------
+/**
+ * Resolve the bridge endpoint from environment variables.
+ *
+ * Returns a fetch-compatible URL and optional Unix socket path.
+ */
+function resolveEndpoint() {
+    const bridgeUrl = process.env.W3_BRIDGE_URL;
+    if (bridgeUrl) {
+        return { url: bridgeUrl };
+    }
+    const socketPath = process.env.W3_BRIDGE_SOCKET ?? "/var/run/w3/bridge.sock";
+    // Node's fetch doesn't support Unix sockets natively.
+    // We use http.request for Unix socket transport.
+    return { url: "http://localhost", socketPath };
+}
+/**
+ * Make an HTTP request to the bridge. Handles both TCP and Unix socket
+ * transports transparently.
+ */
+async function bridgeRequest(path, body) {
+    const { url, socketPath } = resolveEndpoint();
+    if (socketPath) {
+        // Unix socket transport via Node's http module
+        const http = await Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 7067, 19));
+        return new Promise((resolve, reject) => {
+            const payload = body ? JSON.stringify(body) : undefined;
+            const req = http.request({
+                socketPath,
+                path,
+                method: body ? "POST" : "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(payload ? { "Content-Length": Buffer.byteLength(payload) } : {}),
+                },
+            }, (res) => {
+                let data = "";
+                res.on("data", (chunk) => (data += chunk));
+                res.on("end", () => {
+                    if (!res.statusCode || res.statusCode >= 400) {
+                        try {
+                            const err = JSON.parse(data);
+                            reject(new error_W3ActionError(err.code ?? "BRIDGE_ERROR", err.error ?? `Bridge returned ${res.statusCode}`, { statusCode: res.statusCode, details: err }));
+                        }
+                        catch {
+                            reject(new error_W3ActionError("BRIDGE_ERROR", data || `HTTP ${res.statusCode}`, {
+                                statusCode: res.statusCode,
+                            }));
+                        }
+                        return;
+                    }
+                    try {
+                        const parsed = JSON.parse(data);
+                        resolve(parsed);
+                    }
+                    catch {
+                        resolve(data);
+                    }
+                });
+            });
+            req.on("error", (err) => reject(new error_W3ActionError("BRIDGE_UNAVAILABLE", err.message)));
+            if (payload)
+                req.write(payload);
+            req.end();
+        });
+    }
+    // TCP transport via fetch
+    const fullUrl = `${url}${path}`;
+    const init = {
+        method: body ? "POST" : "GET",
+        headers: { "Content-Type": "application/json" },
+        ...(body ? { body: JSON.stringify(body) } : {}),
+    };
+    const res = await fetch(fullUrl, init);
+    const text = await res.text();
+    if (!res.ok) {
+        let parsed;
+        try {
+            parsed = JSON.parse(text);
+        }
+        catch {
+            // not JSON
+        }
+        throw new error_W3ActionError(parsed?.code ?? "BRIDGE_ERROR", parsed?.error ?? text ?? `Bridge returned ${res.status}`, { statusCode: res.status, details: parsed });
+    }
+    try {
+        return JSON.parse(text);
+    }
+    catch {
+        return text;
+    }
+}
+/**
+ * Check if the bridge is available.
+ */
+async function health() {
+    try {
+        const res = (await bridgeRequest("/health"));
+        return res.ok === true;
+    }
+    catch {
+        return false;
+    }
+}
+/**
+ * Call a chain operation via the bridge.
+ *
+ * @param chain - "ethereum", "bitcoin", or "solana"
+ * @param action - Operation name (e.g. "get-balance", "transfer", "call-contract")
+ * @param params - Action-specific parameters
+ * @param network - Network identifier (e.g. "ethereum-sepolia", "avalanche-fuji")
+ */
+async function chain(chainName, action, params, network) {
+    return (await bridgeRequest(`/${chainName}/${action}`, {
+        network: network ?? chainName,
+        params,
+    }));
+}
+/**
+ * Call a crypto operation via the bridge.
+ *
+ * @param action - Operation name (e.g. "keccak-256", "aes-encrypt", "jwt-create")
+ * @param params - Operation-specific parameters
+ */
+async function bridge_crypto(action, params) {
+    return (await bridgeRequest(`/crypto/${action}`, {
+        params,
+    }));
+}
+/**
+ * The bridge client. Import and use:
+ *
+ *   import { bridge } from "@w3-io/action-core";
+ *
+ *   // Chain operations
+ *   const bal = await bridge.chain("ethereum", "get-balance", { address });
+ *
+ *   // Crypto
+ *   const hash = await bridge.crypto("keccak-256", { data: "0x..." });
+ *
+ *   // Health check
+ *   const ok = await bridge.health();
+ */
+const bridge = {
+    health,
+    chain,
+    crypto: bridge_crypto,
+};
+
+;// CONCATENATED MODULE: ./node_modules/@w3-io/action-core/dist/test.js
+/**
+ * Test utilities for W3 actions.
+ *
+ * Mocks @actions/core so you can test command handlers in isolation
+ * without running the full GitHub Actions runtime.
+ *
+ * Usage:
+ *   import { mockAction, expectOutput, expectFailed } from "@w3-io/action-core/test";
+ *
+ *   test("keccak-256 hashes correctly", async () => {
+ *     mockAction({ command: "keccak-256", input: "48656c6c6f" });
+ *     await import("../src/index.js");
+ *     expectOutput("result", (val) => val.includes("hash"));
+ *   });
+ */
+let _inputs = {};
+let _outputs = new Map();
+let _failed = null;
+/**
+ * Set up mock inputs for the next action invocation.
+ * Call this before importing/running the action.
+ */
+function mockAction(inputs) {
+    _inputs = inputs;
+    _outputs = new Map();
+    _failed = null;
+    // Mock process.env for @actions/core.getInput()
+    for (const [key, value] of Object.entries(inputs)) {
+        const envKey = `INPUT_${key.replace(/-/g, "_").toUpperCase()}`;
+        process.env[envKey] = value;
+    }
+}
+/**
+ * Get an output that was set during action execution.
+ */
+function getOutput(name) {
+    return _outputs.get(name);
+}
+/**
+ * Assert an output was set and optionally validate its value.
+ */
+function expectOutput(name, validator) {
+    const value = _outputs.get(name);
+    if (value === undefined) {
+        throw new Error(`Expected output "${name}" to be set. Got: ${JSON.stringify(Object.fromEntries(_outputs))}`);
+    }
+    if (validator && !validator(value)) {
+        throw new Error(`Output "${name}" failed validation. Value: ${value}`);
+    }
+}
+/**
+ * Assert the action failed with a specific message pattern.
+ */
+function expectFailed(pattern) {
+    if (_failed === null) {
+        throw new Error("Expected action to fail, but it succeeded");
+    }
+    if (pattern) {
+        const matches = typeof pattern === "string"
+            ? _failed.includes(pattern)
+            : pattern.test(_failed);
+        if (!matches) {
+            throw new Error(`Expected failure matching "${pattern}", got: "${_failed}"`);
+        }
+    }
+}
+/**
+ * Assert the action succeeded (did not call setFailed).
+ */
+function expectSuccess() {
+    if (_failed !== null) {
+        throw new Error(`Expected action to succeed, but it failed: "${_failed}"`);
+    }
+}
+/**
+ * Clean up mock environment after tests.
+ */
+function cleanupMock() {
+    for (const key of Object.keys(process.env)) {
+        if (key.startsWith("INPUT_")) {
+            delete process.env[key];
+        }
+    }
+    _inputs = {};
+    _outputs = new Map();
+    _failed = null;
+}
+/**
+ * Create a mock @actions/core module that captures outputs and failures.
+ *
+ * Use this to intercept setOutput/setFailed calls:
+ *   const core = createMockCore();
+ *   // pass core to your command handler
+ */
+function createMockCore() {
+    return {
+        getInput: (name, opts) => {
+            const value = _inputs[name] ?? "";
+            if (opts?.required && !value) {
+                throw new Error(`Input required and not supplied: ${name}`);
+            }
+            return value;
+        },
+        setOutput: (name, value) => {
+            _outputs.set(name, typeof value === "string" ? value : JSON.stringify(value));
+        },
+        setFailed: (message) => {
+            _failed = message;
+        },
+        info: (_msg) => { },
+        warning: (_msg) => { },
+        error: (_msg) => { },
+        debug: (_msg) => { },
+        summary: {
+            addHeading: () => ({ addRaw: () => ({ write: async () => { } }) }),
+        },
+    };
+}
+
+;// CONCATENATED MODULE: ./node_modules/@w3-io/action-core/dist/index.js
+
+
+
+
+
+
+
+
 ;// CONCATENATED MODULE: ./src/stripe.js
 /**
  * Stripe API client.
@@ -27967,118 +28537,358 @@ class StripeClient {
   }
 }
 
-;// CONCATENATED MODULE: ./src/main.js
+;// CONCATENATED MODULE: ./src/index.js
 
 
 
-const COMMANDS = {
+
+const router = createCommandRouter({
   // Payments
-  'create-payment': runCreatePayment,
-  'get-payment': runGetPayment,
-  'confirm-payment': runConfirmPayment,
-  'capture-payment': runCapturePayment,
-  'cancel-payment': runCancelPayment,
-  'list-payments': runListPayments,
+  'create-payment': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.createPayment({
+      amount: lib_core.getInput('amount', { required: true }),
+      currency: optionalInput('currency'),
+      customer: optionalInput('customer-id'),
+      description: optionalInput('description'),
+      metadata: optionalJson('metadata'),
+    }))
+  },
+  'get-payment': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.getPayment(lib_core.getInput('payment-id', { required: true })))
+  },
+  'confirm-payment': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.confirmPayment(lib_core.getInput('payment-id', { required: true }), {
+      paymentMethod: optionalInput('payment-method'),
+    }))
+  },
+  'capture-payment': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.capturePayment(lib_core.getInput('payment-id', { required: true }), {
+      amountToCapture: optionalNumber('amount'),
+    }))
+  },
+  'cancel-payment': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.cancelPayment(lib_core.getInput('payment-id', { required: true })))
+  },
+  'list-payments': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.listPayments({
+      customer: optionalInput('customer-id'),
+      limit: optionalNumber('limit'),
+    }))
+  },
+
   // Customers
-  'create-customer': runCreateCustomer,
-  'get-customer': runGetCustomer,
-  'update-customer': runUpdateCustomer,
-  'delete-customer': runDeleteCustomer,
-  'list-customers': runListCustomers,
+  'create-customer': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.createCustomer({
+      email: optionalInput('email'),
+      name: optionalInput('name'),
+      description: optionalInput('description'),
+      metadata: optionalJson('metadata'),
+    }))
+  },
+  'get-customer': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.getCustomer(lib_core.getInput('customer-id', { required: true })))
+  },
+  'update-customer': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.updateCustomer(lib_core.getInput('customer-id', { required: true }), {
+      email: optionalInput('email'),
+      name: optionalInput('name'),
+      description: optionalInput('description'),
+      metadata: optionalJson('metadata'),
+    }))
+  },
+  'delete-customer': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.deleteCustomer(lib_core.getInput('customer-id', { required: true })))
+  },
+  'list-customers': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.listCustomers({
+      email: optionalInput('email'),
+      limit: optionalNumber('limit'),
+    }))
+  },
+
   // Balance
-  'get-balance': runGetBalance,
-  'list-balance-transactions': runListBalanceTransactions,
+  'get-balance': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.getBalance())
+  },
+  'list-balance-transactions': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.listBalanceTransactions({
+      limit: optionalNumber('limit'),
+      type: optionalInput('type'),
+    }))
+  },
+
   // Products
-  'create-product': runCreateProduct,
-  'get-product': runGetProduct,
-  'list-products': runListProducts,
+  'create-product': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.createProduct({
+      name: lib_core.getInput('name', { required: true }),
+      description: optionalInput('description'),
+      metadata: optionalJson('metadata'),
+    }))
+  },
+  'get-product': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.getProduct(lib_core.getInput('product-id', { required: true })))
+  },
+  'list-products': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.listProducts({ limit: optionalNumber('limit') }))
+  },
+
   // Prices
-  'create-price': runCreatePrice,
-  'get-price': runGetPrice,
-  'list-prices': runListPrices,
+  'create-price': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.createPrice({
+      product: lib_core.getInput('product-id', { required: true }),
+      unitAmount: lib_core.getInput('unit-amount', { required: true }),
+      currency: optionalInput('currency'),
+      recurring: optionalInput('recurring-interval'),
+    }))
+  },
+  'get-price': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.getPrice(lib_core.getInput('price-id', { required: true })))
+  },
+  'list-prices': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.listPrices({
+      product: optionalInput('product-id'),
+      limit: optionalNumber('limit'),
+    }))
+  },
+
   // Subscriptions
-  'create-subscription': runCreateSubscription,
-  'get-subscription': runGetSubscription,
-  'cancel-subscription': runCancelSubscription,
-  'list-subscriptions': runListSubscriptions,
+  'create-subscription': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.createSubscription({
+      customer: lib_core.getInput('customer-id', { required: true }),
+      price: lib_core.getInput('price-id', { required: true }),
+      metadata: optionalJson('metadata'),
+    }))
+  },
+  'get-subscription': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.getSubscription(lib_core.getInput('subscription-id', { required: true })))
+  },
+  'cancel-subscription': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.cancelSubscription(lib_core.getInput('subscription-id', { required: true })))
+  },
+  'list-subscriptions': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.listSubscriptions({
+      customer: optionalInput('customer-id'),
+      status: optionalInput('status'),
+      limit: optionalNumber('limit'),
+    }))
+  },
+
   // Invoices
-  'create-invoice': runCreateInvoice,
-  'get-invoice': runGetInvoice,
-  'pay-invoice': runPayInvoice,
-  'list-invoices': runListInvoices,
+  'create-invoice': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.createInvoice({
+      customer: lib_core.getInput('customer-id', { required: true }),
+      description: optionalInput('description'),
+      metadata: optionalJson('metadata'),
+    }))
+  },
+  'get-invoice': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.getInvoice(lib_core.getInput('invoice-id', { required: true })))
+  },
+  'pay-invoice': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.payInvoice(lib_core.getInput('invoice-id', { required: true })))
+  },
+  'list-invoices': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.listInvoices({
+      customer: optionalInput('customer-id'),
+      status: optionalInput('status'),
+      limit: optionalNumber('limit'),
+    }))
+  },
+
   // Refunds
-  'create-refund': runCreateRefund,
-  'get-refund': runGetRefund,
-  'list-refunds': runListRefunds,
+  'create-refund': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.createRefund({
+      paymentIntent: lib_core.getInput('payment-id', { required: true }),
+      amount: optionalNumber('amount'),
+      reason: optionalInput('reason'),
+    }))
+  },
+  'get-refund': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.getRefund(lib_core.getInput('refund-id', { required: true })))
+  },
+  'list-refunds': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.listRefunds({
+      paymentIntent: optionalInput('payment-id'),
+      limit: optionalNumber('limit'),
+    }))
+  },
+
   // Payouts
-  'create-payout': runCreatePayout,
-  'get-payout': runGetPayout,
-  'cancel-payout': runCancelPayout,
-  'list-payouts': runListPayouts,
+  'create-payout': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.createPayout({
+      amount: lib_core.getInput('amount', { required: true }),
+      currency: optionalInput('currency'),
+      description: optionalInput('description'),
+    }))
+  },
+  'get-payout': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.getPayout(lib_core.getInput('payout-id', { required: true })))
+  },
+  'cancel-payout': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.cancelPayout(lib_core.getInput('payout-id', { required: true })))
+  },
+  'list-payouts': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.listPayouts({
+      status: optionalInput('status'),
+      limit: optionalNumber('limit'),
+    }))
+  },
+
   // Transfers (Connect)
-  'create-transfer': runCreateTransfer,
-  'get-transfer': runGetTransfer,
-  'list-transfers': runListTransfers,
+  'create-transfer': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.createTransfer({
+      amount: lib_core.getInput('amount', { required: true }),
+      currency: optionalInput('currency'),
+      destination: lib_core.getInput('destination', { required: true }),
+      description: optionalInput('description'),
+    }))
+  },
+  'get-transfer': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.getTransfer(lib_core.getInput('transfer-id', { required: true })))
+  },
+  'list-transfers': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.listTransfers({
+      destination: optionalInput('destination'),
+      limit: optionalNumber('limit'),
+    }))
+  },
+
   // Disputes
-  'get-dispute': runGetDispute,
-  'list-disputes': runListDisputes,
+  'get-dispute': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.getDispute(lib_core.getInput('dispute-id', { required: true })))
+  },
+  'list-disputes': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.listDisputes({
+      paymentIntent: optionalInput('payment-id'),
+      limit: optionalNumber('limit'),
+    }))
+  },
+
   // Events
-  'get-event': runGetEvent,
-  'list-events': runListEvents,
+  'get-event': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.getEvent(lib_core.getInput('event-id', { required: true })))
+  },
+  'list-events': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.listEvents({
+      type: optionalInput('event-type'),
+      limit: optionalNumber('limit'),
+    }))
+  },
+
   // Crypto Onramp
-  'create-onramp-session': runCreateOnrampSession,
-  'get-onramp-session': runGetOnrampSession,
-  'get-onramp-quotes': runGetOnrampQuotes,
-}
+  'create-onramp-session': async () => {
+    const client = createClient()
+    const walletAddressesRaw = optionalJson('wallet-addresses')
+    const destinationCurrenciesRaw = optionalInput('destination-currencies')
+    const destinationNetworksRaw = optionalInput('destination-networks')
 
-async function run() {
-  try {
-    const command = core.getInput('command', { required: true })
-    const handler = COMMANDS[command]
+    setJsonOutput('result', await client.createOnrampSession({
+      walletAddresses: walletAddressesRaw,
+      lockWalletAddress: optionalInput('lock-wallet-address') === 'true' ? true : undefined,
+      sourceCurrency: optionalInput('source-currency'),
+      sourceAmount: optionalInput('source-amount'),
+      destinationCurrency: optionalInput('destination-currency'),
+      destinationNetwork: optionalInput('destination-network'),
+      destinationAmount: optionalInput('destination-amount'),
+      destinationCurrencies: destinationCurrenciesRaw
+        ? destinationCurrenciesRaw.split(',').map((s) => s.trim())
+        : undefined,
+      destinationNetworks: destinationNetworksRaw
+        ? destinationNetworksRaw.split(',').map((s) => s.trim())
+        : undefined,
+      customerEmail: optionalInput('customer-email'),
+      customerIpAddress: optionalInput('customer-ip-address'),
+    }))
+  },
+  'get-onramp-session': async () => {
+    const client = createClient()
+    setJsonOutput('result', await client.getOnrampSession(lib_core.getInput('session-id', { required: true })))
+  },
+  'get-onramp-quotes': async () => {
+    const client = createClient()
+    const destinationCurrenciesRaw = optionalInput('destination-currencies')
+    const destinationNetworksRaw = optionalInput('destination-networks')
 
-    if (!handler) {
-      core.setFailed(
-        `Unknown command: "${command}". Available: ${Object.keys(COMMANDS).join(', ')}`,
-      )
-      return
-    }
-
-    const timeoutInput = core.getInput('timeout')
-    const maxRetriesInput = core.getInput('max-retries')
-    const client = new StripeClient({
-      apiKey: core.getInput('api-key', { required: true }),
-      baseUrl: core.getInput('api-url') || undefined,
-      timeout: timeoutInput ? Number(timeoutInput) : undefined,
-      maxRetries: maxRetriesInput ? Number(maxRetriesInput) : undefined,
-    })
-
-    const result = await handler(client)
-    core.setOutput('result', JSON.stringify(result))
-
-    writeSummary(command, result)
-  } catch (error) {
-    if (error instanceof StripeError) {
-      core.setFailed(`Stripe error (${error.code}): ${error.message}`)
-    } else {
-      core.setFailed(error.message)
-    }
-  }
-}
+    setJsonOutput('result', await client.getOnrampQuotes({
+      sourceCurrency: optionalInput('source-currency') || 'usd',
+      sourceAmount: optionalInput('source-amount'),
+      destinationAmount: optionalInput('destination-amount'),
+      destinationCurrencies: destinationCurrenciesRaw
+        ? destinationCurrenciesRaw.split(',').map((s) => s.trim())
+        : undefined,
+      destinationNetworks: destinationNetworksRaw
+        ? destinationNetworksRaw.split(',').map((s) => s.trim())
+        : undefined,
+    }))
+  },
+})
 
 // -- Helpers ------------------------------------------------------------------
 
+function createClient() {
+  const timeoutInput = lib_core.getInput('timeout')
+  const maxRetriesInput = lib_core.getInput('max-retries')
+  return new StripeClient({
+    apiKey: lib_core.getInput('api-key', { required: true }),
+    baseUrl: lib_core.getInput('api-url') || undefined,
+    timeout: timeoutInput ? Number(timeoutInput) : undefined,
+    maxRetries: maxRetriesInput ? Number(maxRetriesInput) : undefined,
+  })
+}
+
 function optionalInput(name) {
-  const val = core.getInput(name)
+  const val = lib_core.getInput(name)
   return val || undefined
 }
 
 function optionalNumber(name) {
-  const val = core.getInput(name)
+  const val = lib_core.getInput(name)
   return val ? Number(val) : undefined
 }
 
 function optionalJson(name) {
-  const val = core.getInput(name)
+  const val = lib_core.getInput(name)
   if (!val) return undefined
   try {
     return JSON.parse(val)
@@ -28087,339 +28897,5 @@ function optionalJson(name) {
   }
 }
 
-// -- Payments -----------------------------------------------------------------
-
-async function runCreatePayment(client) {
-  return client.createPayment({
-    amount: core.getInput('amount', { required: true }),
-    currency: optionalInput('currency'),
-    customer: optionalInput('customer-id'),
-    description: optionalInput('description'),
-    metadata: optionalJson('metadata'),
-  })
-}
-
-async function runGetPayment(client) {
-  return client.getPayment(core.getInput('payment-id', { required: true }))
-}
-
-async function runConfirmPayment(client) {
-  return client.confirmPayment(core.getInput('payment-id', { required: true }), {
-    paymentMethod: optionalInput('payment-method'),
-  })
-}
-
-async function runCapturePayment(client) {
-  return client.capturePayment(core.getInput('payment-id', { required: true }), {
-    amountToCapture: optionalNumber('amount'),
-  })
-}
-
-async function runCancelPayment(client) {
-  return client.cancelPayment(core.getInput('payment-id', { required: true }))
-}
-
-async function runListPayments(client) {
-  return client.listPayments({
-    customer: optionalInput('customer-id'),
-    limit: optionalNumber('limit'),
-  })
-}
-
-// -- Customers ----------------------------------------------------------------
-
-async function runCreateCustomer(client) {
-  return client.createCustomer({
-    email: optionalInput('email'),
-    name: optionalInput('name'),
-    description: optionalInput('description'),
-    metadata: optionalJson('metadata'),
-  })
-}
-
-async function runGetCustomer(client) {
-  return client.getCustomer(core.getInput('customer-id', { required: true }))
-}
-
-async function runUpdateCustomer(client) {
-  return client.updateCustomer(core.getInput('customer-id', { required: true }), {
-    email: optionalInput('email'),
-    name: optionalInput('name'),
-    description: optionalInput('description'),
-    metadata: optionalJson('metadata'),
-  })
-}
-
-async function runDeleteCustomer(client) {
-  return client.deleteCustomer(core.getInput('customer-id', { required: true }))
-}
-
-async function runListCustomers(client) {
-  return client.listCustomers({
-    email: optionalInput('email'),
-    limit: optionalNumber('limit'),
-  })
-}
-
-// -- Balance ------------------------------------------------------------------
-
-async function runGetBalance(client) {
-  return client.getBalance()
-}
-
-async function runListBalanceTransactions(client) {
-  return client.listBalanceTransactions({
-    limit: optionalNumber('limit'),
-    type: optionalInput('type'),
-  })
-}
-
-// -- Products -----------------------------------------------------------------
-
-async function runCreateProduct(client) {
-  return client.createProduct({
-    name: core.getInput('name', { required: true }),
-    description: optionalInput('description'),
-    metadata: optionalJson('metadata'),
-  })
-}
-
-async function runGetProduct(client) {
-  return client.getProduct(core.getInput('product-id', { required: true }))
-}
-
-async function runListProducts(client) {
-  return client.listProducts({ limit: optionalNumber('limit') })
-}
-
-// -- Prices -------------------------------------------------------------------
-
-async function runCreatePrice(client) {
-  return client.createPrice({
-    product: core.getInput('product-id', { required: true }),
-    unitAmount: core.getInput('unit-amount', { required: true }),
-    currency: optionalInput('currency'),
-    recurring: optionalInput('recurring-interval'),
-  })
-}
-
-async function runGetPrice(client) {
-  return client.getPrice(core.getInput('price-id', { required: true }))
-}
-
-async function runListPrices(client) {
-  return client.listPrices({
-    product: optionalInput('product-id'),
-    limit: optionalNumber('limit'),
-  })
-}
-
-// -- Subscriptions ------------------------------------------------------------
-
-async function runCreateSubscription(client) {
-  return client.createSubscription({
-    customer: core.getInput('customer-id', { required: true }),
-    price: core.getInput('price-id', { required: true }),
-    metadata: optionalJson('metadata'),
-  })
-}
-
-async function runGetSubscription(client) {
-  return client.getSubscription(core.getInput('subscription-id', { required: true }))
-}
-
-async function runCancelSubscription(client) {
-  return client.cancelSubscription(core.getInput('subscription-id', { required: true }))
-}
-
-async function runListSubscriptions(client) {
-  return client.listSubscriptions({
-    customer: optionalInput('customer-id'),
-    status: optionalInput('status'),
-    limit: optionalNumber('limit'),
-  })
-}
-
-// -- Invoices -----------------------------------------------------------------
-
-async function runCreateInvoice(client) {
-  return client.createInvoice({
-    customer: core.getInput('customer-id', { required: true }),
-    description: optionalInput('description'),
-    metadata: optionalJson('metadata'),
-  })
-}
-
-async function runGetInvoice(client) {
-  return client.getInvoice(core.getInput('invoice-id', { required: true }))
-}
-
-async function runPayInvoice(client) {
-  return client.payInvoice(core.getInput('invoice-id', { required: true }))
-}
-
-async function runListInvoices(client) {
-  return client.listInvoices({
-    customer: optionalInput('customer-id'),
-    status: optionalInput('status'),
-    limit: optionalNumber('limit'),
-  })
-}
-
-// -- Refunds ------------------------------------------------------------------
-
-async function runCreateRefund(client) {
-  return client.createRefund({
-    paymentIntent: core.getInput('payment-id', { required: true }),
-    amount: optionalNumber('amount'),
-    reason: optionalInput('reason'),
-  })
-}
-
-async function runGetRefund(client) {
-  return client.getRefund(core.getInput('refund-id', { required: true }))
-}
-
-async function runListRefunds(client) {
-  return client.listRefunds({
-    paymentIntent: optionalInput('payment-id'),
-    limit: optionalNumber('limit'),
-  })
-}
-
-// -- Payouts ------------------------------------------------------------------
-
-async function runCreatePayout(client) {
-  return client.createPayout({
-    amount: core.getInput('amount', { required: true }),
-    currency: optionalInput('currency'),
-    description: optionalInput('description'),
-  })
-}
-
-async function runGetPayout(client) {
-  return client.getPayout(core.getInput('payout-id', { required: true }))
-}
-
-async function runCancelPayout(client) {
-  return client.cancelPayout(core.getInput('payout-id', { required: true }))
-}
-
-async function runListPayouts(client) {
-  return client.listPayouts({
-    status: optionalInput('status'),
-    limit: optionalNumber('limit'),
-  })
-}
-
-// -- Transfers ----------------------------------------------------------------
-
-async function runCreateTransfer(client) {
-  return client.createTransfer({
-    amount: core.getInput('amount', { required: true }),
-    currency: optionalInput('currency'),
-    destination: core.getInput('destination', { required: true }),
-    description: optionalInput('description'),
-  })
-}
-
-async function runGetTransfer(client) {
-  return client.getTransfer(core.getInput('transfer-id', { required: true }))
-}
-
-async function runListTransfers(client) {
-  return client.listTransfers({
-    destination: optionalInput('destination'),
-    limit: optionalNumber('limit'),
-  })
-}
-
-// -- Disputes -----------------------------------------------------------------
-
-async function runGetDispute(client) {
-  return client.getDispute(core.getInput('dispute-id', { required: true }))
-}
-
-async function runListDisputes(client) {
-  return client.listDisputes({
-    paymentIntent: optionalInput('payment-id'),
-    limit: optionalNumber('limit'),
-  })
-}
-
-// -- Events -------------------------------------------------------------------
-
-async function runGetEvent(client) {
-  return client.getEvent(core.getInput('event-id', { required: true }))
-}
-
-async function runListEvents(client) {
-  return client.listEvents({
-    type: optionalInput('event-type'),
-    limit: optionalNumber('limit'),
-  })
-}
-
-// -- Crypto Onramp ------------------------------------------------------------
-
-async function runCreateOnrampSession(client) {
-  const walletAddressesRaw = optionalJson('wallet-addresses')
-  const destinationCurrenciesRaw = optionalInput('destination-currencies')
-  const destinationNetworksRaw = optionalInput('destination-networks')
-
-  return client.createOnrampSession({
-    walletAddresses: walletAddressesRaw,
-    lockWalletAddress: optionalInput('lock-wallet-address') === 'true' ? true : undefined,
-    sourceCurrency: optionalInput('source-currency'),
-    sourceAmount: optionalInput('source-amount'),
-    destinationCurrency: optionalInput('destination-currency'),
-    destinationNetwork: optionalInput('destination-network'),
-    destinationAmount: optionalInput('destination-amount'),
-    destinationCurrencies: destinationCurrenciesRaw
-      ? destinationCurrenciesRaw.split(',').map((s) => s.trim())
-      : undefined,
-    destinationNetworks: destinationNetworksRaw
-      ? destinationNetworksRaw.split(',').map((s) => s.trim())
-      : undefined,
-    customerEmail: optionalInput('customer-email'),
-    customerIpAddress: optionalInput('customer-ip-address'),
-  })
-}
-
-async function runGetOnrampSession(client) {
-  return client.getOnrampSession(core.getInput('session-id', { required: true }))
-}
-
-async function runGetOnrampQuotes(client) {
-  const destinationCurrenciesRaw = optionalInput('destination-currencies')
-  const destinationNetworksRaw = optionalInput('destination-networks')
-
-  return client.getOnrampQuotes({
-    sourceCurrency: optionalInput('source-currency') || 'usd',
-    sourceAmount: optionalInput('source-amount'),
-    destinationAmount: optionalInput('destination-amount'),
-    destinationCurrencies: destinationCurrenciesRaw
-      ? destinationCurrenciesRaw.split(',').map((s) => s.trim())
-      : undefined,
-    destinationNetworks: destinationNetworksRaw
-      ? destinationNetworksRaw.split(',').map((s) => s.trim())
-      : undefined,
-  })
-}
-
-// -- Job summary --------------------------------------------------------------
-
-function writeSummary(command, result) {
-  const heading = `Stripe: ${command}`
-  core.summary
-    .addHeading(heading, 3)
-    .addCodeBlock(JSON.stringify(result, null, 2), 'json')
-    .write()
-}
-
-;// CONCATENATED MODULE: ./src/index.js
-// Entry point. This file rarely needs changes — it just calls run().
-
-
-run()
+router()
 
