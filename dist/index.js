@@ -28893,7 +28893,7 @@ function optionalJson(name) {
   try {
     return JSON.parse(val)
   } catch {
-    throw new StripeError(`Invalid JSON in "${name}" input`, { code: 'INVALID_JSON_INPUT' })
+    throw new error_W3ActionError('INVALID_JSON_INPUT', `Invalid JSON in "${name}" input`)
   }
 }
 

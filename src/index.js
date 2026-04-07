@@ -1,6 +1,6 @@
-import { createCommandRouter, setJsonOutput, handleError } from '@w3-io/action-core'
+import { createCommandRouter, setJsonOutput, handleError, W3ActionError } from '@w3-io/action-core'
 import * as core from '@actions/core'
-import { StripeClient, StripeError } from './stripe.js'
+import { StripeClient } from './stripe.js'
 
 const router = createCommandRouter({
   // Payments
@@ -353,7 +353,7 @@ function optionalJson(name) {
   try {
     return JSON.parse(val)
   } catch {
-    throw new StripeError(`Invalid JSON in "${name}" input`, { code: 'INVALID_JSON_INPUT' })
+    throw new W3ActionError('INVALID_JSON_INPUT', `Invalid JSON in "${name}" input`)
   }
 }
 
