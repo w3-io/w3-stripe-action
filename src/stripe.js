@@ -420,8 +420,7 @@ export class StripeClient {
   }
 
   async getOnrampSession(sessionId) {
-    if (!sessionId)
-      throw new StripeError('session-id is required', { code: 'MISSING_SESSION_ID' })
+    if (!sessionId) throw new StripeError('session-id is required', { code: 'MISSING_SESSION_ID' })
     return this.request('GET', `/v1/crypto/onramp_sessions/${encodeURIComponent(sessionId)}`)
   }
 

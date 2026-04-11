@@ -27390,141 +27390,47 @@ function parseParams (str) {
 module.exports = parseParams
 
 
-/***/ })
+/***/ }),
 
-/******/ });
-/************************************************************************/
-/******/ // The module cache
-/******/ var __webpack_module_cache__ = {};
-/******/ 
-/******/ // The require function
-/******/ function __nccwpck_require__(moduleId) {
-/******/ 	// Check if module is in cache
-/******/ 	var cachedModule = __webpack_module_cache__[moduleId];
-/******/ 	if (cachedModule !== undefined) {
-/******/ 		return cachedModule.exports;
-/******/ 	}
-/******/ 	// Create a new module (and put it into the cache)
-/******/ 	var module = __webpack_module_cache__[moduleId] = {
-/******/ 		// no module.id needed
-/******/ 		// no module.loaded needed
-/******/ 		exports: {}
-/******/ 	};
-/******/ 
-/******/ 	// Execute the module function
-/******/ 	var threw = true;
-/******/ 	try {
-/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nccwpck_require__);
-/******/ 		threw = false;
-/******/ 	} finally {
-/******/ 		if(threw) delete __webpack_module_cache__[moduleId];
-/******/ 	}
-/******/ 
-/******/ 	// Return the exports of the module
-/******/ 	return module.exports;
-/******/ }
-/******/ 
-/************************************************************************/
-/******/ /* webpack/runtime/create fake namespace object */
-/******/ (() => {
-/******/ 	var getProto = Object.getPrototypeOf ? (obj) => (Object.getPrototypeOf(obj)) : (obj) => (obj.__proto__);
-/******/ 	var leafPrototypes;
-/******/ 	// create a fake namespace object
-/******/ 	// mode & 1: value is a module id, require it
-/******/ 	// mode & 2: merge all properties of value into the ns
-/******/ 	// mode & 4: return value when already ns object
-/******/ 	// mode & 16: return value when it's Promise-like
-/******/ 	// mode & 8|1: behave like require
-/******/ 	__nccwpck_require__.t = function(value, mode) {
-/******/ 		if(mode & 1) value = this(value);
-/******/ 		if(mode & 8) return value;
-/******/ 		if(typeof value === 'object' && value) {
-/******/ 			if((mode & 4) && value.__esModule) return value;
-/******/ 			if((mode & 16) && typeof value.then === 'function') return value;
-/******/ 		}
-/******/ 		var ns = Object.create(null);
-/******/ 		__nccwpck_require__.r(ns);
-/******/ 		var def = {};
-/******/ 		leafPrototypes = leafPrototypes || [null, getProto({}), getProto([]), getProto(getProto)];
-/******/ 		for(var current = mode & 2 && value; typeof current == 'object' && !~leafPrototypes.indexOf(current); current = getProto(current)) {
-/******/ 			Object.getOwnPropertyNames(current).forEach((key) => (def[key] = () => (value[key])));
-/******/ 		}
-/******/ 		def['default'] = () => (value);
-/******/ 		__nccwpck_require__.d(ns, def);
-/******/ 		return ns;
-/******/ 	};
-/******/ })();
-/******/ 
-/******/ /* webpack/runtime/define property getters */
-/******/ (() => {
-/******/ 	// define getter functions for harmony exports
-/******/ 	__nccwpck_require__.d = (exports, definition) => {
-/******/ 		for(var key in definition) {
-/******/ 			if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 			}
-/******/ 		}
-/******/ 	};
-/******/ })();
-/******/ 
-/******/ /* webpack/runtime/hasOwnProperty shorthand */
-/******/ (() => {
-/******/ 	__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ })();
-/******/ 
-/******/ /* webpack/runtime/make namespace object */
-/******/ (() => {
-/******/ 	// define __esModule on exports
-/******/ 	__nccwpck_require__.r = (exports) => {
-/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 		}
-/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 	};
-/******/ })();
-/******/ 
-/******/ /* webpack/runtime/compat */
-/******/ 
-/******/ if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = new URL('.', import.meta.url).pathname.slice(import.meta.url.match(/^file:\/\/\/\w:/) ? 1 : 0, -1) + "/";
-/******/ 
-/************************************************************************/
-var __webpack_exports__ = {};
+/***/ 4653:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  FE: () => (/* reexport */ error_W3ActionError),
+  X4: () => (/* reexport */ createCommandRouter),
+  H4: () => (/* reexport */ handleError),
+  mI: () => (/* reexport */ setJsonOutput)
+});
+
+// UNUSED EXPORTS: bitcoin, bridge, cleanupMock, createMockCore, ethereum, expectFailed, expectOutput, expectSuccess, getOptionalInput, getOutput, mockAction, parseJsonInput, request, requireInput, setOutputs, solana, writeSummary
 
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var lib_core = __nccwpck_require__(7484);
 ;// CONCATENATED MODULE: ./node_modules/@w3-io/action-core/dist/input.js
 
 /**
- * Parse a JSON input. Returns the parsed value or undefined if empty.
- * Throws with a clear message if the input contains invalid JSON.
+ * Read an input and parse it as JSON. Returns the parsed value.
+ * Throws if the input is missing (when required) or not valid JSON.
  */
-function parseJsonInput(name) {
-    const raw = core.getInput(name);
-    if (!raw.trim())
+function parseJsonInput(name, options) {
+    const raw = core.getInput(name, options);
+    if (!raw)
         return undefined;
-    try {
-        return JSON.parse(raw);
-    }
-    catch {
-        throw new Error(`Input '${name}' is not valid JSON: ${raw.slice(0, 100)}`);
-    }
+    return JSON.parse(raw);
 }
 /**
- * Get a required input. Throws if missing or empty.
+ * Read a required input. Throws if missing.
  */
 function requireInput(name) {
-    const value = core.getInput(name);
-    if (!value.trim()) {
-        throw new Error(`Required input '${name}' is missing`);
-    }
-    return value;
+    return core.getInput(name, { required: true });
 }
 /**
- * Get an optional input with a default value.
+ * Read an optional input. Returns undefined if empty.
  */
-function getOptionalInput(name, defaultValue = "") {
-    const value = core.getInput(name);
-    return value.trim() || defaultValue;
+function getOptionalInput(name) {
+    return core.getInput(name) || undefined;
 }
 
 ;// CONCATENATED MODULE: ./node_modules/@w3-io/action-core/dist/output.js
@@ -27544,7 +27450,9 @@ function setJsonOutput(name, value) {
  */
 function setOutputs(outputs) {
     for (const [key, value] of Object.entries(outputs)) {
-        setJsonOutput(key, value);
+        if (value != null) {
+            setJsonOutput(key, value);
+        }
     }
 }
 
@@ -27589,82 +27497,35 @@ function handleError(error) {
 ;// CONCATENATED MODULE: ./node_modules/@w3-io/action-core/dist/http.js
 
 /**
- * Make an HTTP request with timeout, retry, and structured errors.
+ * Make an HTTP request with JSON body. Returns parsed JSON response.
  *
- * - Retries on 429 and 5xx with exponential backoff
- * - Parses JSON response automatically
- * - Throws W3ActionError with status code on failure
+ * For partner API clients that don't need the bridge.
  */
 async function request(url, options = {}) {
-    const { method = "GET", headers = {}, body, timeout = 30000, retries = 2, retryDelay = 1000, } = options;
-    const init = {
-        method,
-        headers: {
-            "Content-Type": "application/json",
-            ...headers,
-        },
-        signal: AbortSignal.timeout(timeout),
-    };
-    if (body !== undefined) {
-        init.body = typeof body === "string" ? body : JSON.stringify(body);
-    }
-    let lastError;
-    for (let attempt = 0; attempt <= retries; attempt++) {
-        try {
-            const res = await fetch(url, init);
-            const raw = await res.text();
-            let parsed;
-            try {
-                parsed = JSON.parse(raw);
-            }
-            catch {
-                parsed = raw;
-            }
-            const responseHeaders = {};
-            res.headers.forEach((v, k) => {
-                responseHeaders[k] = v;
+    const { method = "GET", headers = {}, body, timeout = 30000 } = options;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+    try {
+        const response = await fetch(url, {
+            method,
+            headers: {
+                "Content-Type": "application/json",
+                ...headers,
+            },
+            body: body ? JSON.stringify(body) : undefined,
+            signal: controller.signal,
+        });
+        if (!response.ok) {
+            const text = await response.text().catch(() => "");
+            throw new W3ActionError("HTTP_ERROR", `${response.status}: ${text}`, {
+                statusCode: response.status,
             });
-            if (!res.ok) {
-                // Retry on 429 (rate limit) and 5xx (server error)
-                if ((res.status === 429 || res.status >= 500) &&
-                    attempt < retries) {
-                    await sleep(retryDelay * 2 ** attempt);
-                    continue;
-                }
-                throw new W3ActionError("HTTP_ERROR", `${method} ${url}: ${res.status}`, {
-                    statusCode: res.status,
-                    details: parsed,
-                });
-            }
-            return { status: res.status, headers: responseHeaders, body: parsed, raw };
         }
-        catch (error) {
-            if (error instanceof W3ActionError)
-                throw error;
-            lastError = error instanceof Error ? error : new Error(String(error));
-            if (attempt < retries) {
-                await sleep(retryDelay * 2 ** attempt);
-                continue;
-            }
-        }
+        return (await response.json());
     }
-    throw new W3ActionError("REQUEST_FAILED", `${method} ${url}: ${lastError?.message ?? "unknown error"}`);
-}
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-/**
- * Convenience: add API key auth header.
- */
-function apiKeyAuth(key, headerName = "Authorization", prefix = "Bearer") {
-    return { [headerName]: `${prefix} ${key}` };
-}
-/**
- * Convenience: add basic auth header.
- */
-function basicAuth(username, password) {
-    const encoded = Buffer.from(`${username}:${password}`).toString("base64");
-    return { Authorization: `Basic ${encoded}` };
+    finally {
+        clearTimeout(timer);
+    }
 }
 
 ;// CONCATENATED MODULE: ./node_modules/@w3-io/action-core/dist/command.js
@@ -27708,8 +27569,17 @@ function createCommandRouter(commands) {
  *   - $W3_BRIDGE_URL    → TCP URL (macOS Docker Desktop fallback)
  *
  * Usage:
- *   import { bridge } from "@w3-io/action-core";
+ *   import { bridge, ethereum } from "@w3-io/action-core";
  *
+ *   // Typed helpers (recommended — autocomplete + type checking):
+ *   const receipt = await ethereum.callContract({
+ *     contract: "0x...",
+ *     method: "deposit(uint256)",
+ *     args: ["1000000"],
+ *     gasMultiplier: "1.5",
+ *   });
+ *
+ *   // Generic (full control):
  *   const balance = await bridge.chain("ethereum", "get-balance", {
  *     address: "0x...",
  *   });
@@ -27720,29 +27590,17 @@ function createCommandRouter(commands) {
 // ---------------------------------------------------------------------------
 // Transport
 // ---------------------------------------------------------------------------
-/**
- * Resolve the bridge endpoint from environment variables.
- *
- * Returns a fetch-compatible URL and optional Unix socket path.
- */
 function resolveEndpoint() {
     const bridgeUrl = process.env.W3_BRIDGE_URL;
     if (bridgeUrl) {
         return { url: bridgeUrl };
     }
     const socketPath = process.env.W3_BRIDGE_SOCKET ?? "/var/run/w3/bridge.sock";
-    // Node's fetch doesn't support Unix sockets natively.
-    // We use http.request for Unix socket transport.
     return { url: "http://localhost", socketPath };
 }
-/**
- * Make an HTTP request to the bridge. Handles both TCP and Unix socket
- * transports transparently.
- */
 async function bridgeRequest(path, body) {
     const { url, socketPath } = resolveEndpoint();
     if (socketPath) {
-        // Unix socket transport via Node's http module
         const http = await Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 7067, 19));
         return new Promise((resolve, reject) => {
             const payload = body ? JSON.stringify(body) : undefined;
@@ -27752,7 +27610,9 @@ async function bridgeRequest(path, body) {
                 method: body ? "POST" : "GET",
                 headers: {
                     "Content-Type": "application/json",
-                    ...(payload ? { "Content-Length": Buffer.byteLength(payload) } : {}),
+                    ...(payload
+                        ? { "Content-Length": Buffer.byteLength(payload) }
+                        : {}),
                 },
             }, (res) => {
                 let data = "";
@@ -27764,15 +27624,12 @@ async function bridgeRequest(path, body) {
                             reject(new error_W3ActionError(err.code ?? "BRIDGE_ERROR", err.error ?? `Bridge returned ${res.statusCode}`, { statusCode: res.statusCode, details: err }));
                         }
                         catch {
-                            reject(new error_W3ActionError("BRIDGE_ERROR", data || `HTTP ${res.statusCode}`, {
-                                statusCode: res.statusCode,
-                            }));
+                            reject(new error_W3ActionError("BRIDGE_ERROR", data || `HTTP ${res.statusCode}`, { statusCode: res.statusCode }));
                         }
                         return;
                     }
                     try {
-                        const parsed = JSON.parse(data);
-                        resolve(parsed);
+                        resolve(JSON.parse(data));
                     }
                     catch {
                         resolve(data);
@@ -27811,9 +27668,19 @@ async function bridgeRequest(path, body) {
         return text;
     }
 }
-/**
- * Check if the bridge is available.
- */
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function chainRequest(chainName, action, params, network) {
+    return bridgeRequest(`/${chainName}/${action}`, {
+        network: network ?? chainName,
+        params,
+    });
+}
+// ---------------------------------------------------------------------------
+// Public API — generic
+// ---------------------------------------------------------------------------
 async function health() {
     try {
         const res = (await bridgeRequest("/health"));
@@ -27824,42 +27691,83 @@ async function health() {
     }
 }
 /**
- * Call a chain operation via the bridge.
+ * Execute a chain operation.
  *
- * @param chain - "ethereum", "bitcoin", or "solana"
- * @param action - Operation name (e.g. "get-balance", "transfer", "call-contract")
- * @param params - Action-specific parameters
- * @param network - Network identifier (e.g. "ethereum-sepolia", "avalanche-fuji")
+ * For type-safe calls, use the typed helpers (`ethereum`, `solana`,
+ * `bitcoin`) instead. This generic method accepts any params.
  */
 async function chain(chainName, action, params, network) {
-    return (await bridgeRequest(`/${chainName}/${action}`, {
-        network: network ?? chainName,
-        params,
-    }));
+    return chainRequest(chainName, action, params, network);
 }
-/**
- * Call a crypto operation via the bridge.
- *
- * @param action - Operation name (e.g. "keccak-256", "aes-encrypt", "jwt-create")
- * @param params - Operation-specific parameters
- */
 async function bridge_crypto(action, params) {
     return (await bridgeRequest(`/crypto/${action}`, {
         params,
     }));
 }
+// ---------------------------------------------------------------------------
+// Public API — typed chain helpers
+// ---------------------------------------------------------------------------
+/** Typed Ethereum operations. */
+const ethereum = {
+    getBalance: (params, network) => chainRequest("ethereum", "get-balance", params, network),
+    readContract: (params, network) => chainRequest("ethereum", "read-contract", params, network),
+    callContract: (params, network) => chainRequest("ethereum", "call-contract", params, network),
+    transfer: (params, network) => chainRequest("ethereum", "transfer", params, network),
+    sendTransaction: (params, network) => chainRequest("ethereum", "send-transaction", params, network),
+    deployContract: (params, network) => chainRequest("ethereum", "deploy-contract", params, network),
+    transferToken: (params, network) => chainRequest("ethereum", "transfer-token", params, network),
+    approveToken: (params, network) => chainRequest("ethereum", "approve-token", params, network),
+    transferNft: (params, network) => chainRequest("ethereum", "transfer-nft", params, network),
+    getTransaction: (params, network) => chainRequest("ethereum", "get-transaction", params, network),
+    waitForTransaction: (params, network) => chainRequest("ethereum", "wait-for-transaction", params, network),
+    getEvents: (params, network) => chainRequest("ethereum", "get-events", params, network),
+    resolveName: (params, network) => chainRequest("ethereum", "resolve-name", params, network),
+    getTokenBalance: (params, network) => chainRequest("ethereum", "get-token-balance", params, network),
+    getTokenAllowance: (params, network) => chainRequest("ethereum", "get-token-allowance", params, network),
+    getNftOwner: (params, network) => chainRequest("ethereum", "get-nft-owner", params, network),
+    getNftMetadata: (params, network) => chainRequest("ethereum", "get-nft-metadata", params, network),
+};
+/** Typed Solana operations. */
+const solana = {
+    getBalance: (params, network) => chainRequest("solana", "get-balance", params, network),
+    transfer: (params, network) => chainRequest("solana", "transfer", params, network),
+    transferToken: (params, network) => chainRequest("solana", "transfer-token", params, network),
+    callProgram: (params, network) => chainRequest("solana", "call-program", params, network),
+    getAccount: (params, network) => chainRequest("solana", "get-account", params, network),
+    getTokenBalance: (params, network) => chainRequest("solana", "get-token-balance", params, network),
+    getTokenAccounts: (params, network) => chainRequest("solana", "get-token-accounts", params, network),
+    getTransaction: (params, network) => chainRequest("solana", "get-transaction", params, network),
+    waitForTransaction: (params, network) => chainRequest("solana", "wait-for-transaction", params, network),
+    /** Generate an ephemeral keypair for use as an additional signer. */
+    generateKeypair: () => bridgeRequest("/solana/generate-keypair", {}),
+    /** Get the payer's public key (no secret exposed). */
+    payerAddress: () => bridgeRequest("/solana/payer-address"),
+};
+/** Typed Bitcoin operations. */
+const bitcoin = {
+    getBalance: (params, network) => chainRequest("bitcoin", "get-balance", params, network),
+    send: (params, network) => chainRequest("bitcoin", "send", params, network),
+    getUtxos: (params, network) => chainRequest("bitcoin", "get-utxos", params, network),
+    getTransaction: (params, network) => chainRequest("bitcoin", "get-transaction", params, network),
+    getFeeRate: (params, network) => chainRequest("bitcoin", "get-fee-rate", params ?? {}, network),
+    waitForTransaction: (params, network) => chainRequest("bitcoin", "wait-for-transaction", params, network),
+};
+// ---------------------------------------------------------------------------
+// Default export
+// ---------------------------------------------------------------------------
 /**
- * The bridge client. Import and use:
+ * The bridge client.
  *
- *   import { bridge } from "@w3-io/action-core";
+ *   import { bridge, ethereum, solana, bitcoin } from "@w3-io/action-core";
  *
- *   // Chain operations
+ *   // Typed (recommended):
+ *   const receipt = await ethereum.callContract({ contract, method, args });
+ *   const sig = await solana.callProgram({ programId, accounts, data });
+ *   const tx = await bitcoin.send({ to, amount });
+ *
+ *   // Generic:
  *   const bal = await bridge.chain("ethereum", "get-balance", { address });
- *
- *   // Crypto
  *   const hash = await bridge.crypto("keccak-256", { data: "0x..." });
- *
- *   // Health check
  *   const ok = await bridge.health();
  */
 const bridge = {
@@ -27868,48 +27776,69 @@ const bridge = {
     crypto: bridge_crypto,
 };
 
+;// CONCATENATED MODULE: ./node_modules/@w3-io/action-core/dist/summary.js
+
+/**
+ * Write a job summary safely.
+ *
+ * Wraps `@actions/core` summary with proper `await` and error handling.
+ * The W3 runner sets GITHUB_STEP_SUMMARY and mounts a writable file,
+ * so this works on both GitHub Actions and W3. If the summary file is
+ * unavailable (local dev, CI without summary support), the write is
+ * silently skipped.
+ *
+ * Usage:
+ *   await writeSummary("My Action: deposit", [
+ *     ["Amount", "1000 USDC"],
+ *     ["TX", "`0xabc...`"],
+ *   ]);
+ *
+ *   await writeSummary("My Action: query", result);
+ */
+async function writeSummary(heading, content) {
+    try {
+        core.summary.addHeading(heading, 3);
+        if (typeof content === "string") {
+            core.summary.addRaw(content);
+        }
+        else if (Array.isArray(content)) {
+            // Key-value pairs rendered as markdown
+            for (const [key, value] of content) {
+                core.summary.addRaw(`**${key}:** ${value}\n\n`);
+            }
+        }
+        else {
+            core.summary.addCodeBlock(JSON.stringify(content, null, 2), "json");
+        }
+        await core.summary.write();
+    }
+    catch {
+        // Silently skip — environment may not support job summaries
+    }
+}
+
 ;// CONCATENATED MODULE: ./node_modules/@w3-io/action-core/dist/test.js
 /**
  * Test utilities for W3 actions.
  *
  * Mocks @actions/core so you can test command handlers in isolation
  * without running the full GitHub Actions runtime.
- *
- * Usage:
- *   import { mockAction, expectOutput, expectFailed } from "@w3-io/action-core/test";
- *
- *   test("keccak-256 hashes correctly", async () => {
- *     mockAction({ command: "keccak-256", input: "48656c6c6f" });
- *     await import("../src/index.js");
- *     expectOutput("result", (val) => val.includes("hash"));
- *   });
  */
 let _inputs = {};
 let _outputs = new Map();
 let _failed = null;
-/**
- * Set up mock inputs for the next action invocation.
- * Call this before importing/running the action.
- */
 function mockAction(inputs) {
     _inputs = inputs;
     _outputs = new Map();
     _failed = null;
-    // Mock process.env for @actions/core.getInput()
     for (const [key, value] of Object.entries(inputs)) {
         const envKey = `INPUT_${key.replace(/-/g, "_").toUpperCase()}`;
         process.env[envKey] = value;
     }
 }
-/**
- * Get an output that was set during action execution.
- */
 function getOutput(name) {
     return _outputs.get(name);
 }
-/**
- * Assert an output was set and optionally validate its value.
- */
 function expectOutput(name, validator) {
     const value = _outputs.get(name);
     if (value === undefined) {
@@ -27919,9 +27848,6 @@ function expectOutput(name, validator) {
         throw new Error(`Output "${name}" failed validation. Value: ${value}`);
     }
 }
-/**
- * Assert the action failed with a specific message pattern.
- */
 function expectFailed(pattern) {
     if (_failed === null) {
         throw new Error("Expected action to fail, but it succeeded");
@@ -27935,17 +27861,11 @@ function expectFailed(pattern) {
         }
     }
 }
-/**
- * Assert the action succeeded (did not call setFailed).
- */
 function expectSuccess() {
     if (_failed !== null) {
         throw new Error(`Expected action to succeed, but it failed: "${_failed}"`);
     }
 }
-/**
- * Clean up mock environment after tests.
- */
 function cleanupMock() {
     for (const key of Object.keys(process.env)) {
         if (key.startsWith("INPUT_")) {
@@ -27956,14 +27876,8 @@ function cleanupMock() {
     _outputs = new Map();
     _failed = null;
 }
-/**
- * Create a mock @actions/core module that captures outputs and failures.
- *
- * Use this to intercept setOutput/setFailed calls:
- *   const core = createMockCore();
- *   // pass core to your command handler
- */
 function createMockCore() {
+    const noopChain = () => ({ addRaw: noopChain, addHeading: noopChain, addCodeBlock: noopChain, write: async () => { } });
     return {
         getInput: (name, opts) => {
             const value = _inputs[name] ?? "";
@@ -27982,9 +27896,7 @@ function createMockCore() {
         warning: (_msg) => { },
         error: (_msg) => { },
         debug: (_msg) => { },
-        summary: {
-            addHeading: () => ({ addRaw: () => ({ write: async () => { } }) }),
-        },
+        summary: { addHeading: noopChain, addRaw: noopChain, addCodeBlock: noopChain, write: async () => { } },
     };
 }
 
@@ -27997,7 +27909,512 @@ function createMockCore() {
 
 
 
-;// CONCATENATED MODULE: ./src/stripe.js
+
+
+/***/ }),
+
+/***/ 9722:
+/***/ ((__webpack_module__, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
+
+__nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+/* harmony import */ var _w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(4653);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(7484);
+/* harmony import */ var _stripe_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(4821);
+
+
+
+
+const router = (0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .createCommandRouter */ .X4)({
+  // Payments
+  'create-payment': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.createPayment({
+        amount: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('amount', { required: true }),
+        currency: optionalInput('currency'),
+        customer: optionalInput('customer-id'),
+        description: optionalInput('description'),
+        metadata: optionalJson('metadata'),
+      }),
+    )
+  },
+  'get-payment': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.getPayment(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('payment-id', { required: true })),
+    )
+  },
+  'confirm-payment': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.confirmPayment(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('payment-id', { required: true }), {
+        paymentMethod: optionalInput('payment-method'),
+      }),
+    )
+  },
+  'capture-payment': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.capturePayment(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('payment-id', { required: true }), {
+        amountToCapture: optionalNumber('amount'),
+      }),
+    )
+  },
+  'cancel-payment': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.cancelPayment(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('payment-id', { required: true })),
+    )
+  },
+  'list-payments': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.listPayments({
+        customer: optionalInput('customer-id'),
+        limit: optionalNumber('limit'),
+      }),
+    )
+  },
+
+  // Customers
+  'create-customer': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.createCustomer({
+        email: optionalInput('email'),
+        name: optionalInput('name'),
+        description: optionalInput('description'),
+        metadata: optionalJson('metadata'),
+      }),
+    )
+  },
+  'get-customer': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.getCustomer(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('customer-id', { required: true })),
+    )
+  },
+  'update-customer': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.updateCustomer(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('customer-id', { required: true }), {
+        email: optionalInput('email'),
+        name: optionalInput('name'),
+        description: optionalInput('description'),
+        metadata: optionalJson('metadata'),
+      }),
+    )
+  },
+  'delete-customer': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.deleteCustomer(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('customer-id', { required: true })),
+    )
+  },
+  'list-customers': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.listCustomers({
+        email: optionalInput('email'),
+        limit: optionalNumber('limit'),
+      }),
+    )
+  },
+
+  // Balance
+  'get-balance': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)('result', await client.getBalance())
+  },
+  'list-balance-transactions': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.listBalanceTransactions({
+        limit: optionalNumber('limit'),
+        type: optionalInput('type'),
+      }),
+    )
+  },
+
+  // Products
+  'create-product': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.createProduct({
+        name: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('name', { required: true }),
+        description: optionalInput('description'),
+        metadata: optionalJson('metadata'),
+      }),
+    )
+  },
+  'get-product': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.getProduct(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('product-id', { required: true })),
+    )
+  },
+  'list-products': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)('result', await client.listProducts({ limit: optionalNumber('limit') }))
+  },
+
+  // Prices
+  'create-price': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.createPrice({
+        product: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('product-id', { required: true }),
+        unitAmount: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('unit-amount', { required: true }),
+        currency: optionalInput('currency'),
+        recurring: optionalInput('recurring-interval'),
+      }),
+    )
+  },
+  'get-price': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)('result', await client.getPrice(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('price-id', { required: true })))
+  },
+  'list-prices': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.listPrices({
+        product: optionalInput('product-id'),
+        limit: optionalNumber('limit'),
+      }),
+    )
+  },
+
+  // Subscriptions
+  'create-subscription': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.createSubscription({
+        customer: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('customer-id', { required: true }),
+        price: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('price-id', { required: true }),
+        metadata: optionalJson('metadata'),
+      }),
+    )
+  },
+  'get-subscription': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.getSubscription(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('subscription-id', { required: true })),
+    )
+  },
+  'cancel-subscription': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.cancelSubscription(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('subscription-id', { required: true })),
+    )
+  },
+  'list-subscriptions': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.listSubscriptions({
+        customer: optionalInput('customer-id'),
+        status: optionalInput('status'),
+        limit: optionalNumber('limit'),
+      }),
+    )
+  },
+
+  // Invoices
+  'create-invoice': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.createInvoice({
+        customer: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('customer-id', { required: true }),
+        description: optionalInput('description'),
+        metadata: optionalJson('metadata'),
+      }),
+    )
+  },
+  'get-invoice': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.getInvoice(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('invoice-id', { required: true })),
+    )
+  },
+  'pay-invoice': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.payInvoice(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('invoice-id', { required: true })),
+    )
+  },
+  'list-invoices': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.listInvoices({
+        customer: optionalInput('customer-id'),
+        status: optionalInput('status'),
+        limit: optionalNumber('limit'),
+      }),
+    )
+  },
+
+  // Refunds
+  'create-refund': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.createRefund({
+        paymentIntent: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('payment-id', { required: true }),
+        amount: optionalNumber('amount'),
+        reason: optionalInput('reason'),
+      }),
+    )
+  },
+  'get-refund': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)('result', await client.getRefund(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('refund-id', { required: true })))
+  },
+  'list-refunds': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.listRefunds({
+        paymentIntent: optionalInput('payment-id'),
+        limit: optionalNumber('limit'),
+      }),
+    )
+  },
+
+  // Payouts
+  'create-payout': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.createPayout({
+        amount: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('amount', { required: true }),
+        currency: optionalInput('currency'),
+        description: optionalInput('description'),
+      }),
+    )
+  },
+  'get-payout': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)('result', await client.getPayout(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('payout-id', { required: true })))
+  },
+  'cancel-payout': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.cancelPayout(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('payout-id', { required: true })),
+    )
+  },
+  'list-payouts': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.listPayouts({
+        status: optionalInput('status'),
+        limit: optionalNumber('limit'),
+      }),
+    )
+  },
+
+  // Transfers (Connect)
+  'create-transfer': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.createTransfer({
+        amount: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('amount', { required: true }),
+        currency: optionalInput('currency'),
+        destination: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('destination', { required: true }),
+        description: optionalInput('description'),
+      }),
+    )
+  },
+  'get-transfer': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.getTransfer(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('transfer-id', { required: true })),
+    )
+  },
+  'list-transfers': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.listTransfers({
+        destination: optionalInput('destination'),
+        limit: optionalNumber('limit'),
+      }),
+    )
+  },
+
+  // Disputes
+  'get-dispute': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.getDispute(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('dispute-id', { required: true })),
+    )
+  },
+  'list-disputes': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.listDisputes({
+        paymentIntent: optionalInput('payment-id'),
+        limit: optionalNumber('limit'),
+      }),
+    )
+  },
+
+  // Events
+  'get-event': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)('result', await client.getEvent(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('event-id', { required: true })))
+  },
+  'list-events': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.listEvents({
+        type: optionalInput('event-type'),
+        limit: optionalNumber('limit'),
+      }),
+    )
+  },
+
+  // Crypto Onramp
+  'create-onramp-session': async () => {
+    const client = createClient()
+    const walletAddressesRaw = optionalJson('wallet-addresses')
+    const destinationCurrenciesRaw = optionalInput('destination-currencies')
+    const destinationNetworksRaw = optionalInput('destination-networks')
+
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.createOnrampSession({
+        walletAddresses: walletAddressesRaw,
+        lockWalletAddress: optionalInput('lock-wallet-address') === 'true' ? true : undefined,
+        sourceCurrency: optionalInput('source-currency'),
+        sourceAmount: optionalInput('source-amount'),
+        destinationCurrency: optionalInput('destination-currency'),
+        destinationNetwork: optionalInput('destination-network'),
+        destinationAmount: optionalInput('destination-amount'),
+        destinationCurrencies: destinationCurrenciesRaw
+          ? destinationCurrenciesRaw.split(',').map((s) => s.trim())
+          : undefined,
+        destinationNetworks: destinationNetworksRaw
+          ? destinationNetworksRaw.split(',').map((s) => s.trim())
+          : undefined,
+        customerEmail: optionalInput('customer-email'),
+        customerIpAddress: optionalInput('customer-ip-address'),
+      }),
+    )
+  },
+  'get-onramp-session': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.getOnrampSession(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('session-id', { required: true })),
+    )
+  },
+  'get-onramp-quotes': async () => {
+    const client = createClient()
+    const destinationCurrenciesRaw = optionalInput('destination-currencies')
+    const destinationNetworksRaw = optionalInput('destination-networks')
+
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.getOnrampQuotes({
+        sourceCurrency: optionalInput('source-currency') || 'usd',
+        sourceAmount: optionalInput('source-amount'),
+        destinationAmount: optionalInput('destination-amount'),
+        destinationCurrencies: destinationCurrenciesRaw
+          ? destinationCurrenciesRaw.split(',').map((s) => s.trim())
+          : undefined,
+        destinationNetworks: destinationNetworksRaw
+          ? destinationNetworksRaw.split(',').map((s) => s.trim())
+          : undefined,
+      }),
+    )
+  },
+})
+
+// -- Helpers ------------------------------------------------------------------
+
+function createClient() {
+  const timeoutInput = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('timeout')
+  const maxRetriesInput = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('max-retries')
+  return new _stripe_js__WEBPACK_IMPORTED_MODULE_2__/* .StripeClient */ .z({
+    apiKey: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('api-key', { required: true }),
+    baseUrl: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('api-url') || undefined,
+    timeout: timeoutInput ? Number(timeoutInput) : undefined,
+    maxRetries: maxRetriesInput ? Number(maxRetriesInput) : undefined,
+  })
+}
+
+function optionalInput(name) {
+  const val = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput(name)
+  return val || undefined
+}
+
+function optionalNumber(name) {
+  const val = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput(name)
+  return val ? Number(val) : undefined
+}
+
+function optionalJson(name) {
+  const val = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput(name)
+  if (!val) return undefined
+  try {
+    return JSON.parse(val)
+  } catch {
+    throw new _w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .W3ActionError */ .FE('INVALID_JSON_INPUT', `Invalid JSON in "${name}" input`)
+  }
+}
+
+try {
+  await router()
+} catch (err) {
+  if (err instanceof _w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .W3ActionError */ .FE) {
+    _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(`[${err.code}] ${err.message}`)
+  } else {
+    (0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .handleError */ .H4)(err)
+  }
+}
+
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } }, 1);
+
+/***/ }),
+
+/***/ 4821:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   z: () => (/* binding */ StripeClient)
+/* harmony export */ });
+/* unused harmony export StripeError */
 /**
  * Stripe API client.
  *
@@ -28420,8 +28837,7 @@ class StripeClient {
   }
 
   async getOnrampSession(sessionId) {
-    if (!sessionId)
-      throw new StripeError('session-id is required', { code: 'MISSING_SESSION_ID' })
+    if (!sessionId) throw new StripeError('session-id is required', { code: 'MISSING_SESSION_ID' })
     return this.request('GET', `/v1/crypto/onramp_sessions/${encodeURIComponent(sessionId)}`)
   }
 
@@ -28537,365 +28953,178 @@ class StripeClient {
   }
 }
 
-;// CONCATENATED MODULE: ./src/index.js
 
+/***/ })
 
-
-
-const router = createCommandRouter({
-  // Payments
-  'create-payment': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.createPayment({
-      amount: lib_core.getInput('amount', { required: true }),
-      currency: optionalInput('currency'),
-      customer: optionalInput('customer-id'),
-      description: optionalInput('description'),
-      metadata: optionalJson('metadata'),
-    }))
-  },
-  'get-payment': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.getPayment(lib_core.getInput('payment-id', { required: true })))
-  },
-  'confirm-payment': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.confirmPayment(lib_core.getInput('payment-id', { required: true }), {
-      paymentMethod: optionalInput('payment-method'),
-    }))
-  },
-  'capture-payment': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.capturePayment(lib_core.getInput('payment-id', { required: true }), {
-      amountToCapture: optionalNumber('amount'),
-    }))
-  },
-  'cancel-payment': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.cancelPayment(lib_core.getInput('payment-id', { required: true })))
-  },
-  'list-payments': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.listPayments({
-      customer: optionalInput('customer-id'),
-      limit: optionalNumber('limit'),
-    }))
-  },
-
-  // Customers
-  'create-customer': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.createCustomer({
-      email: optionalInput('email'),
-      name: optionalInput('name'),
-      description: optionalInput('description'),
-      metadata: optionalJson('metadata'),
-    }))
-  },
-  'get-customer': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.getCustomer(lib_core.getInput('customer-id', { required: true })))
-  },
-  'update-customer': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.updateCustomer(lib_core.getInput('customer-id', { required: true }), {
-      email: optionalInput('email'),
-      name: optionalInput('name'),
-      description: optionalInput('description'),
-      metadata: optionalJson('metadata'),
-    }))
-  },
-  'delete-customer': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.deleteCustomer(lib_core.getInput('customer-id', { required: true })))
-  },
-  'list-customers': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.listCustomers({
-      email: optionalInput('email'),
-      limit: optionalNumber('limit'),
-    }))
-  },
-
-  // Balance
-  'get-balance': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.getBalance())
-  },
-  'list-balance-transactions': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.listBalanceTransactions({
-      limit: optionalNumber('limit'),
-      type: optionalInput('type'),
-    }))
-  },
-
-  // Products
-  'create-product': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.createProduct({
-      name: lib_core.getInput('name', { required: true }),
-      description: optionalInput('description'),
-      metadata: optionalJson('metadata'),
-    }))
-  },
-  'get-product': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.getProduct(lib_core.getInput('product-id', { required: true })))
-  },
-  'list-products': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.listProducts({ limit: optionalNumber('limit') }))
-  },
-
-  // Prices
-  'create-price': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.createPrice({
-      product: lib_core.getInput('product-id', { required: true }),
-      unitAmount: lib_core.getInput('unit-amount', { required: true }),
-      currency: optionalInput('currency'),
-      recurring: optionalInput('recurring-interval'),
-    }))
-  },
-  'get-price': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.getPrice(lib_core.getInput('price-id', { required: true })))
-  },
-  'list-prices': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.listPrices({
-      product: optionalInput('product-id'),
-      limit: optionalNumber('limit'),
-    }))
-  },
-
-  // Subscriptions
-  'create-subscription': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.createSubscription({
-      customer: lib_core.getInput('customer-id', { required: true }),
-      price: lib_core.getInput('price-id', { required: true }),
-      metadata: optionalJson('metadata'),
-    }))
-  },
-  'get-subscription': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.getSubscription(lib_core.getInput('subscription-id', { required: true })))
-  },
-  'cancel-subscription': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.cancelSubscription(lib_core.getInput('subscription-id', { required: true })))
-  },
-  'list-subscriptions': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.listSubscriptions({
-      customer: optionalInput('customer-id'),
-      status: optionalInput('status'),
-      limit: optionalNumber('limit'),
-    }))
-  },
-
-  // Invoices
-  'create-invoice': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.createInvoice({
-      customer: lib_core.getInput('customer-id', { required: true }),
-      description: optionalInput('description'),
-      metadata: optionalJson('metadata'),
-    }))
-  },
-  'get-invoice': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.getInvoice(lib_core.getInput('invoice-id', { required: true })))
-  },
-  'pay-invoice': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.payInvoice(lib_core.getInput('invoice-id', { required: true })))
-  },
-  'list-invoices': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.listInvoices({
-      customer: optionalInput('customer-id'),
-      status: optionalInput('status'),
-      limit: optionalNumber('limit'),
-    }))
-  },
-
-  // Refunds
-  'create-refund': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.createRefund({
-      paymentIntent: lib_core.getInput('payment-id', { required: true }),
-      amount: optionalNumber('amount'),
-      reason: optionalInput('reason'),
-    }))
-  },
-  'get-refund': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.getRefund(lib_core.getInput('refund-id', { required: true })))
-  },
-  'list-refunds': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.listRefunds({
-      paymentIntent: optionalInput('payment-id'),
-      limit: optionalNumber('limit'),
-    }))
-  },
-
-  // Payouts
-  'create-payout': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.createPayout({
-      amount: lib_core.getInput('amount', { required: true }),
-      currency: optionalInput('currency'),
-      description: optionalInput('description'),
-    }))
-  },
-  'get-payout': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.getPayout(lib_core.getInput('payout-id', { required: true })))
-  },
-  'cancel-payout': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.cancelPayout(lib_core.getInput('payout-id', { required: true })))
-  },
-  'list-payouts': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.listPayouts({
-      status: optionalInput('status'),
-      limit: optionalNumber('limit'),
-    }))
-  },
-
-  // Transfers (Connect)
-  'create-transfer': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.createTransfer({
-      amount: lib_core.getInput('amount', { required: true }),
-      currency: optionalInput('currency'),
-      destination: lib_core.getInput('destination', { required: true }),
-      description: optionalInput('description'),
-    }))
-  },
-  'get-transfer': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.getTransfer(lib_core.getInput('transfer-id', { required: true })))
-  },
-  'list-transfers': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.listTransfers({
-      destination: optionalInput('destination'),
-      limit: optionalNumber('limit'),
-    }))
-  },
-
-  // Disputes
-  'get-dispute': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.getDispute(lib_core.getInput('dispute-id', { required: true })))
-  },
-  'list-disputes': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.listDisputes({
-      paymentIntent: optionalInput('payment-id'),
-      limit: optionalNumber('limit'),
-    }))
-  },
-
-  // Events
-  'get-event': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.getEvent(lib_core.getInput('event-id', { required: true })))
-  },
-  'list-events': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.listEvents({
-      type: optionalInput('event-type'),
-      limit: optionalNumber('limit'),
-    }))
-  },
-
-  // Crypto Onramp
-  'create-onramp-session': async () => {
-    const client = createClient()
-    const walletAddressesRaw = optionalJson('wallet-addresses')
-    const destinationCurrenciesRaw = optionalInput('destination-currencies')
-    const destinationNetworksRaw = optionalInput('destination-networks')
-
-    setJsonOutput('result', await client.createOnrampSession({
-      walletAddresses: walletAddressesRaw,
-      lockWalletAddress: optionalInput('lock-wallet-address') === 'true' ? true : undefined,
-      sourceCurrency: optionalInput('source-currency'),
-      sourceAmount: optionalInput('source-amount'),
-      destinationCurrency: optionalInput('destination-currency'),
-      destinationNetwork: optionalInput('destination-network'),
-      destinationAmount: optionalInput('destination-amount'),
-      destinationCurrencies: destinationCurrenciesRaw
-        ? destinationCurrenciesRaw.split(',').map((s) => s.trim())
-        : undefined,
-      destinationNetworks: destinationNetworksRaw
-        ? destinationNetworksRaw.split(',').map((s) => s.trim())
-        : undefined,
-      customerEmail: optionalInput('customer-email'),
-      customerIpAddress: optionalInput('customer-ip-address'),
-    }))
-  },
-  'get-onramp-session': async () => {
-    const client = createClient()
-    setJsonOutput('result', await client.getOnrampSession(lib_core.getInput('session-id', { required: true })))
-  },
-  'get-onramp-quotes': async () => {
-    const client = createClient()
-    const destinationCurrenciesRaw = optionalInput('destination-currencies')
-    const destinationNetworksRaw = optionalInput('destination-networks')
-
-    setJsonOutput('result', await client.getOnrampQuotes({
-      sourceCurrency: optionalInput('source-currency') || 'usd',
-      sourceAmount: optionalInput('source-amount'),
-      destinationAmount: optionalInput('destination-amount'),
-      destinationCurrencies: destinationCurrenciesRaw
-        ? destinationCurrenciesRaw.split(',').map((s) => s.trim())
-        : undefined,
-      destinationNetworks: destinationNetworksRaw
-        ? destinationNetworksRaw.split(',').map((s) => s.trim())
-        : undefined,
-    }))
-  },
-})
-
-// -- Helpers ------------------------------------------------------------------
-
-function createClient() {
-  const timeoutInput = lib_core.getInput('timeout')
-  const maxRetriesInput = lib_core.getInput('max-retries')
-  return new StripeClient({
-    apiKey: lib_core.getInput('api-key', { required: true }),
-    baseUrl: lib_core.getInput('api-url') || undefined,
-    timeout: timeoutInput ? Number(timeoutInput) : undefined,
-    maxRetries: maxRetriesInput ? Number(maxRetriesInput) : undefined,
-  })
-}
-
-function optionalInput(name) {
-  const val = lib_core.getInput(name)
-  return val || undefined
-}
-
-function optionalNumber(name) {
-  const val = lib_core.getInput(name)
-  return val ? Number(val) : undefined
-}
-
-function optionalJson(name) {
-  const val = lib_core.getInput(name)
-  if (!val) return undefined
-  try {
-    return JSON.parse(val)
-  } catch {
-    throw new error_W3ActionError('INVALID_JSON_INPUT', `Invalid JSON in "${name}" input`)
-  }
-}
-
-router()
-
+/******/ });
+/************************************************************************/
+/******/ // The module cache
+/******/ var __webpack_module_cache__ = {};
+/******/ 
+/******/ // The require function
+/******/ function __nccwpck_require__(moduleId) {
+/******/ 	// Check if module is in cache
+/******/ 	var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 	if (cachedModule !== undefined) {
+/******/ 		return cachedModule.exports;
+/******/ 	}
+/******/ 	// Create a new module (and put it into the cache)
+/******/ 	var module = __webpack_module_cache__[moduleId] = {
+/******/ 		// no module.id needed
+/******/ 		// no module.loaded needed
+/******/ 		exports: {}
+/******/ 	};
+/******/ 
+/******/ 	// Execute the module function
+/******/ 	var threw = true;
+/******/ 	try {
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nccwpck_require__);
+/******/ 		threw = false;
+/******/ 	} finally {
+/******/ 		if(threw) delete __webpack_module_cache__[moduleId];
+/******/ 	}
+/******/ 
+/******/ 	// Return the exports of the module
+/******/ 	return module.exports;
+/******/ }
+/******/ 
+/************************************************************************/
+/******/ /* webpack/runtime/async module */
+/******/ (() => {
+/******/ 	var webpackQueues = typeof Symbol === "function" ? Symbol("webpack queues") : "__webpack_queues__";
+/******/ 	var webpackExports = typeof Symbol === "function" ? Symbol("webpack exports") : "__webpack_exports__";
+/******/ 	var webpackError = typeof Symbol === "function" ? Symbol("webpack error") : "__webpack_error__";
+/******/ 	var resolveQueue = (queue) => {
+/******/ 		if(queue && queue.d < 1) {
+/******/ 			queue.d = 1;
+/******/ 			queue.forEach((fn) => (fn.r--));
+/******/ 			queue.forEach((fn) => (fn.r-- ? fn.r++ : fn()));
+/******/ 		}
+/******/ 	}
+/******/ 	var wrapDeps = (deps) => (deps.map((dep) => {
+/******/ 		if(dep !== null && typeof dep === "object") {
+/******/ 			if(dep[webpackQueues]) return dep;
+/******/ 			if(dep.then) {
+/******/ 				var queue = [];
+/******/ 				queue.d = 0;
+/******/ 				dep.then((r) => {
+/******/ 					obj[webpackExports] = r;
+/******/ 					resolveQueue(queue);
+/******/ 				}, (e) => {
+/******/ 					obj[webpackError] = e;
+/******/ 					resolveQueue(queue);
+/******/ 				});
+/******/ 				var obj = {};
+/******/ 				obj[webpackQueues] = (fn) => (fn(queue));
+/******/ 				return obj;
+/******/ 			}
+/******/ 		}
+/******/ 		var ret = {};
+/******/ 		ret[webpackQueues] = x => {};
+/******/ 		ret[webpackExports] = dep;
+/******/ 		return ret;
+/******/ 	}));
+/******/ 	__nccwpck_require__.a = (module, body, hasAwait) => {
+/******/ 		var queue;
+/******/ 		hasAwait && ((queue = []).d = -1);
+/******/ 		var depQueues = new Set();
+/******/ 		var exports = module.exports;
+/******/ 		var currentDeps;
+/******/ 		var outerResolve;
+/******/ 		var reject;
+/******/ 		var promise = new Promise((resolve, rej) => {
+/******/ 			reject = rej;
+/******/ 			outerResolve = resolve;
+/******/ 		});
+/******/ 		promise[webpackExports] = exports;
+/******/ 		promise[webpackQueues] = (fn) => (queue && fn(queue), depQueues.forEach(fn), promise["catch"](x => {}));
+/******/ 		module.exports = promise;
+/******/ 		body((deps) => {
+/******/ 			currentDeps = wrapDeps(deps);
+/******/ 			var fn;
+/******/ 			var getResult = () => (currentDeps.map((d) => {
+/******/ 				if(d[webpackError]) throw d[webpackError];
+/******/ 				return d[webpackExports];
+/******/ 			}))
+/******/ 			var promise = new Promise((resolve) => {
+/******/ 				fn = () => (resolve(getResult));
+/******/ 				fn.r = 0;
+/******/ 				var fnQueue = (q) => (q !== queue && !depQueues.has(q) && (depQueues.add(q), q && !q.d && (fn.r++, q.push(fn))));
+/******/ 				currentDeps.map((dep) => (dep[webpackQueues](fnQueue)));
+/******/ 			});
+/******/ 			return fn.r ? promise : getResult();
+/******/ 		}, (err) => ((err ? reject(promise[webpackError] = err) : outerResolve(exports)), resolveQueue(queue)));
+/******/ 		queue && queue.d < 0 && (queue.d = 0);
+/******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/create fake namespace object */
+/******/ (() => {
+/******/ 	var getProto = Object.getPrototypeOf ? (obj) => (Object.getPrototypeOf(obj)) : (obj) => (obj.__proto__);
+/******/ 	var leafPrototypes;
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 16: return value when it's Promise-like
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__nccwpck_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = this(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if(typeof value === 'object' && value) {
+/******/ 			if((mode & 4) && value.__esModule) return value;
+/******/ 			if((mode & 16) && typeof value.then === 'function') return value;
+/******/ 		}
+/******/ 		var ns = Object.create(null);
+/******/ 		__nccwpck_require__.r(ns);
+/******/ 		var def = {};
+/******/ 		leafPrototypes = leafPrototypes || [null, getProto({}), getProto([]), getProto(getProto)];
+/******/ 		for(var current = mode & 2 && value; typeof current == 'object' && !~leafPrototypes.indexOf(current); current = getProto(current)) {
+/******/ 			Object.getOwnPropertyNames(current).forEach((key) => (def[key] = () => (value[key])));
+/******/ 		}
+/******/ 		def['default'] = () => (value);
+/******/ 		__nccwpck_require__.d(ns, def);
+/******/ 		return ns;
+/******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/define property getters */
+/******/ (() => {
+/******/ 	// define getter functions for harmony exports
+/******/ 	__nccwpck_require__.d = (exports, definition) => {
+/******/ 		for(var key in definition) {
+/******/ 			if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 			}
+/******/ 		}
+/******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/hasOwnProperty shorthand */
+/******/ (() => {
+/******/ 	__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/make namespace object */
+/******/ (() => {
+/******/ 	// define __esModule on exports
+/******/ 	__nccwpck_require__.r = (exports) => {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/compat */
+/******/ 
+/******/ if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = new URL('.', import.meta.url).pathname.slice(import.meta.url.match(/^file:\/\/\/\w:/) ? 1 : 0, -1) + "/";
+/******/ 
+/************************************************************************/
+/******/ 
+/******/ // startup
+/******/ // Load entry module and return exports
+/******/ // This entry module used 'module' so it can't be inlined
+/******/ var __webpack_exports__ = __nccwpck_require__(9722);
+/******/ __webpack_exports__ = await __webpack_exports__;
+/******/ 
