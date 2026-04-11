@@ -1,8 +1,0 @@
-{
-  "id": "pi_3abc123",
-  "object": "payment_intent",
-  "amount": 1000,
-  "currency": "usd",
-  "status": "requires_payment_method",
-  "client_secret": "pi_3abc123_secret_xyz"
-}
