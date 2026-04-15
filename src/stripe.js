@@ -48,7 +48,7 @@ export class StripeClient {
   async createPayment({ amount, currency = 'usd', customer, description, metadata }) {
     if (amount == null) throw new StripeError('amount is required', { code: 'MISSING_AMOUNT' })
 
-    const params = { amount: String(amount), currency }
+    const params = { amount: String(amount), currency, 'payment_method_types[]': 'card' }
     if (customer) params.customer = customer
     if (description) params.description = description
     StripeClient.applyMetadata(params, metadata)

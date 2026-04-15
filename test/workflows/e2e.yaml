@@ -155,17 +155,19 @@ jobs:
       #           amount: "2500"
       #           reason: requested_by_customer
 
-      - name: Extract refund ID
-      #         id: refund
-      #         run: |
-      #           echo "id=$(echo '${{ steps.create_refund.outputs.result }}' | jq -r '.id')" >> "$GITHUB_OUTPUT"
-      # 
-      #       - name: Get the refund
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: get-refund
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           refund-id: ${{ steps.refund.outputs.id }}
+      # SKIP: extract-refund-id requires create-refund output (payment method not enabled)
+      # - name: Extract refund ID
+      #   id: refund
+      #   run: |
+      #     echo "id=$(echo '${{ steps.create_refund.outputs.result }}' | jq -r '.id')" >> "$GITHUB_OUTPUT"
+
+      # SKIP: get-refund requires a refund ID from create-refund
+      # - name: Get the refund
+      #   uses: w3-io/w3-stripe-action@v0
+      #   with:
+      #     command: get-refund
+      #     api-key: ${{ secrets.STRIPE_API_KEY }}
+      #     refund-id: ${{ steps.refund.outputs.id }}
 
       - name: List refunds
         uses: w3-io/w3-stripe-action@v0
