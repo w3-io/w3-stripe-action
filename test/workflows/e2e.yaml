@@ -10,253 +10,258 @@
 #   - W3_SECRET_STRIPE_API_KEY set to a Stripe test-mode key (sk_test_*)
 
 name: stripe-e2e
+on:
+  workflow_dispatch: {}
 
-steps:
-  # ── Customers ──────────────────────────────────────────────────────────
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      # ── Customers ──────────────────────────────────────────────────────────
 
-  - name: Create a test customer
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: create-customer
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      email: e2e-test@example.com
-      name: E2E Test Customer
-      description: Created by W3 e2e test workflow
+      - name: Create a test customer
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: create-customer
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          email: e2e-test@example.com
+          name: E2E Test Customer
+          description: Created by W3 e2e test workflow
 
-  - name: List customers
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: list-customers
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      limit: "5"
+      - name: List customers
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: list-customers
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          limit: "5"
 
-  - name: Get the created customer
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: get-customer
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
+      - name: Get the created customer
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: get-customer
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
 
-  - name: Update customer metadata
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: update-customer
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
-      metadata: '{"source": "e2e-test"}'
+      - name: Update customer metadata
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: update-customer
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
+          metadata: '{"source": "e2e-test"}'
 
-  # ── Products & Prices ──────────────────────────────────────────────────
+      # ── Products & Prices ──────────────────────────────────────────────────
 
-  - name: Create a product
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: create-product
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      name: E2E Test Product
-      description: Test product for e2e workflow
+      - name: Create a product
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: create-product
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          name: E2E Test Product
+          description: Test product for e2e workflow
 
-  - name: List products
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: list-products
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      limit: "5"
+      - name: List products
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: list-products
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          limit: "5"
 
-  - name: Get the created product
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: get-product
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      product-id: ${{ steps.create-a-product.outputs.result.id }}
+      - name: Get the created product
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: get-product
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          product-id: ${{ steps.create-a-product.outputs.result.id }}
 
-  - name: Create a one-time price
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: create-price
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      product-id: ${{ steps.create-a-product.outputs.result.id }}
-      unit-amount: "2500"
-      currency: usd
+      - name: Create a one-time price
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: create-price
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          product-id: ${{ steps.create-a-product.outputs.result.id }}
+          unit-amount: "2500"
+          currency: usd
 
-  - name: Create a recurring price
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: create-price
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      product-id: ${{ steps.create-a-product.outputs.result.id }}
-      unit-amount: "999"
-      currency: usd
-      recurring-interval: month
+      - name: Create a recurring price
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: create-price
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          product-id: ${{ steps.create-a-product.outputs.result.id }}
+          unit-amount: "999"
+          currency: usd
+          recurring-interval: month
 
-  - name: List prices
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: list-prices
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      limit: "5"
+      - name: List prices
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: list-prices
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          limit: "5"
 
-  - name: Get the one-time price
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: get-price
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      price-id: ${{ steps.create-a-one-time-price.outputs.result.id }}
+      - name: Get the one-time price
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: get-price
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          price-id: ${{ steps.create-a-one-time-price.outputs.result.id }}
 
-  # ── Payments ───────────────────────────────────────────────────────────
+      # ── Payments ───────────────────────────────────────────────────────────
 
-  - name: Create a payment intent
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: create-payment
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      amount: "5000"
-      currency: usd
-      customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
-      description: E2E test payment
+      - name: Create a payment intent
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: create-payment
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          amount: "5000"
+          currency: usd
+          customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
+          description: E2E test payment
 
-  - name: Get the payment intent
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: get-payment
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      payment-id: ${{ steps.create-a-payment-intent.outputs.result.id }}
+      - name: Get the payment intent
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: get-payment
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          payment-id: ${{ steps.create-a-payment-intent.outputs.result.id }}
 
-  - name: List payment intents
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: list-payments
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      limit: "5"
+      - name: List payment intents
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: list-payments
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          limit: "5"
 
-  - name: Cancel the payment intent
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: cancel-payment
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      payment-id: ${{ steps.create-a-payment-intent.outputs.result.id }}
+      - name: Cancel the payment intent
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: cancel-payment
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          payment-id: ${{ steps.create-a-payment-intent.outputs.result.id }}
 
-  # ── Invoices ───────────────────────────────────────────────────────────
+      # ── Invoices ───────────────────────────────────────────────────────────
 
-  - name: Create an invoice
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: create-invoice
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
-      description: E2E test invoice
+      - name: Create an invoice
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: create-invoice
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
+          description: E2E test invoice
 
-  - name: List invoices
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: list-invoices
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      limit: "5"
+      - name: List invoices
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: list-invoices
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          limit: "5"
 
-  - name: Get the invoice
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: get-invoice
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      invoice-id: ${{ steps.create-an-invoice.outputs.result.id }}
+      - name: Get the invoice
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: get-invoice
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          invoice-id: ${{ steps.create-an-invoice.outputs.result.id }}
 
-  # ── Subscriptions ──────────────────────────────────────────────────────
+      # ── Subscriptions ──────────────────────────────────────────────────────
 
-  - name: Create a subscription
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: create-subscription
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
-      price-id: ${{ steps.create-a-recurring-price.outputs.result.id }}
+      - name: Create a subscription
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: create-subscription
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
+          price-id: ${{ steps.create-a-recurring-price.outputs.result.id }}
 
-  - name: List subscriptions
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: list-subscriptions
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      limit: "5"
+      - name: List subscriptions
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: list-subscriptions
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          limit: "5"
 
-  - name: Get the subscription
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: get-subscription
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      subscription-id: ${{ steps.create-a-subscription.outputs.result.id }}
+      - name: Get the subscription
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: get-subscription
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          subscription-id: ${{ steps.create-a-subscription.outputs.result.id }}
 
-  - name: Cancel the subscription
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: cancel-subscription
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      subscription-id: ${{ steps.create-a-subscription.outputs.result.id }}
+      - name: Cancel the subscription
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: cancel-subscription
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          subscription-id: ${{ steps.create-a-subscription.outputs.result.id }}
 
-  # ── Balance ────────────────────────────────────────────────────────────
+      # ── Balance ────────────────────────────────────────────────────────────
 
-  - name: Get account balance
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: get-balance
-      api-key: ${{ secrets.STRIPE_API_KEY }}
+      - name: Get account balance
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: get-balance
+          api-key: ${{ secrets.STRIPE_API_KEY }}
 
-  - name: List balance transactions
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: list-balance-transactions
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      limit: "5"
+      - name: List balance transactions
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: list-balance-transactions
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          limit: "5"
 
-  # ── Refunds ────────────────────────────────────────────────────────────
-  # Note: create-refund requires a successful charge; skipped in basic e2e.
-  # These list/get commands verify the refund API path works.
+      # ── Refunds ────────────────────────────────────────────────────────────
+      # Note: create-refund requires a successful charge; skipped in basic e2e.
+      # These list/get commands verify the refund API path works.
 
-  - name: List refunds
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: list-refunds
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      limit: "5"
+      - name: List refunds
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: list-refunds
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          limit: "5"
 
-  # ── Payouts ────────────────────────────────────────────────────────────
+      # ── Payouts ────────────────────────────────────────────────────────────
 
-  - name: List payouts
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: list-payouts
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      limit: "5"
+      - name: List payouts
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: list-payouts
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          limit: "5"
 
-  # ── Transfers ──────────────────────────────────────────────────────────
+      # ── Transfers ──────────────────────────────────────────────────────────
 
-  - name: List transfers
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: list-transfers
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      limit: "5"
+      - name: List transfers
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: list-transfers
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          limit: "5"
 
-  # ── Disputes ───────────────────────────────────────────────────────────
+      # ── Disputes ───────────────────────────────────────────────────────────
 
-  - name: List disputes
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: list-disputes
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      limit: "5"
+      - name: List disputes
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: list-disputes
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          limit: "5"
 
-  # ── Events ─────────────────────────────────────────────────────────────
+      # ── Events ─────────────────────────────────────────────────────────────
 
-  - name: List events
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: list-events
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      limit: "5"
+      - name: List events
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: list-events
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          limit: "5"
 
-  # ── Cleanup ────────────────────────────────────────────────────────────
+      # ── Cleanup ────────────────────────────────────────────────────────────
 
-  - name: Delete the test customer
-    uses: w3-io/w3-stripe-action@v0
-    with:
-      command: delete-customer
-      api-key: ${{ secrets.STRIPE_API_KEY }}
-      customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
+      - name: Delete the test customer
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: delete-customer
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
