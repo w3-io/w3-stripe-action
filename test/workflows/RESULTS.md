@@ -1,52 +1,69 @@
 # E2E Test Results
 
-Last verified: 2026-04-15
-
-## Environment
-
-- W3 local network (3-node localnet)
-- Protocol: master (includes EIP-712, bridge-allow expansion, nonce manager)
-- Runner image: w3io/w3-runner (Node 20/24)
+> Last verified: 2026-04-15 -- NOT YET VERIFIED (YAML error in e2e.yaml)
 
 ## Prerequisites
 
-- W3 local network running (make dev)
-- W3_SECRET_STRIPE_API_KEY set to a Stripe test-mode key (sk_test_*)
+| Credential | Env var | Source |
+|-----------|---------|--------|
+| Stripe API key (test mode) | `STRIPE_API_KEY` | Stripe dashboard (sk_test_*) |
 
 ## Results
 
-| Step | Command | Status | Notes |
-|------|---------|--------|-------|
-| 1 | create-customer | PASS | e2e-test@example.com |
-| 2 | list-customers | PASS | limit 5 |
-| 3 | get-customer | PASS | By created customer ID |
-| 4 | update-customer | PASS | Set metadata |
-| 5 | create-product | PASS | E2E Test Product |
-| 6 | list-products | PASS | limit 5 |
-| 7 | get-product | PASS | By created product ID |
-| 8 | create-price (one-time) | PASS | $25.00 USD |
-| 9 | create-price (recurring) | PASS | $9.99/month USD |
-| 10 | list-prices | PASS | limit 5 |
-| 11 | get-price | PASS | By one-time price ID |
-| 12 | create-payment | PASS | $50.00 USD payment intent |
-| 13 | get-payment | PASS | By payment intent ID |
-| 14 | list-payments | PASS | limit 5 |
-| 15 | cancel-payment | PASS | Cancel payment intent |
-| 16 | create-invoice | PASS | For test customer |
-| 17 | list-invoices | PASS | limit 5 |
-| 18 | get-invoice | PASS | By invoice ID |
-| 19 | get-balance | PASS | Account balance |
-| 20 | list-balance-transactions | PASS | limit 5 |
-| 21 | list-refunds | PASS | limit 5 |
-| 22 | list-payouts | PASS | limit 5 |
-| 23 | list-transfers | PASS | limit 5 |
-| 24 | list-disputes | PASS | limit 5 |
-| 25 | list-events | PASS | limit 5 |
-| 26 | delete-customer | PASS | Cleanup |
+| # | Step | Command | Status | Notes |
+|---|------|---------|--------|-------|
+| 1 | Create a test customer | `create-customer` | NOT YET VERIFIED | YAML parse error |
+| 2 | List customers | `list-customers` | NOT YET VERIFIED | |
+| 3 | Get the created customer | `get-customer` | NOT YET VERIFIED | |
+| 4 | Update customer metadata | `update-customer` | NOT YET VERIFIED | |
+| 5 | Create a product | `create-product` | NOT YET VERIFIED | |
+| 6 | List products | `list-products` | NOT YET VERIFIED | |
+| 7 | Get the created product | `get-product` | NOT YET VERIFIED | |
+| 8 | Create a one-time price | `create-price` | NOT YET VERIFIED | |
+| 9 | Create a recurring price | `create-price` (recurring) | NOT YET VERIFIED | |
+| 10 | List prices | `list-prices` | NOT YET VERIFIED | |
+| 11 | Get the one-time price | `get-price` | NOT YET VERIFIED | |
+| 12 | Create a payment intent (manual) | `create-payment` | NOT YET VERIFIED | |
+| 13 | List refunds | `list-refunds` | NOT YET VERIFIED | |
+| 14 | Create a payment intent | `create-payment` | NOT YET VERIFIED | |
+| 15 | Get the payment intent | `get-payment` | NOT YET VERIFIED | |
+| 16 | List payment intents | `list-payments` | NOT YET VERIFIED | |
+| 17 | Cancel the payment intent | `cancel-payment` | NOT YET VERIFIED | |
+| 18 | Create an invoice | `create-invoice` | NOT YET VERIFIED | |
+| 19 | Get the invoice | `get-invoice` | NOT YET VERIFIED | |
+| 20 | Pay the invoice | `pay-invoice` | NOT YET VERIFIED | |
+| 21 | List invoices | `list-invoices` | NOT YET VERIFIED | |
+| 22 | Create a subscription | `create-subscription` | NOT YET VERIFIED | |
+| 23 | List subscriptions | `list-subscriptions` | NOT YET VERIFIED | |
+| 24 | Get the subscription | `get-subscription` | NOT YET VERIFIED | |
+| 25 | Cancel the subscription | `cancel-subscription` | NOT YET VERIFIED | |
+| 26 | Get account balance | `get-balance` | NOT YET VERIFIED | |
+| 27 | List balance transactions | `list-balance-transactions` | NOT YET VERIFIED | |
+| 28 | List payouts | `list-payouts` | NOT YET VERIFIED | |
+| 29 | List transfers | `list-transfers` | NOT YET VERIFIED | |
+| 30 | List disputes | `list-disputes` | NOT YET VERIFIED | |
+| 31 | List events | `list-events` | NOT YET VERIFIED | |
+| 32 | Get an event | `get-event` | NOT YET VERIFIED | |
+| 33 | Delete the test customer | `delete-customer` | NOT YET VERIFIED | |
 
-## Known Limitations
+## Skipped Commands
 
-- Subscription steps (create-subscription, list-subscriptions,
-  get-subscription, cancel-subscription) are commented out because they
-  require a test payment method attached to the customer.
-- create-refund requires a successful charge; skipped in basic e2e.
+| Command | Reason |
+|---------|--------|
+| `confirm-payment` | Requires payment methods enabled in Dashboard |
+| `capture-payment` | Requires confirmed payment |
+| `create-refund` / `get-refund` | Requires captured payment |
+| `create-payout` / `get-payout` / `cancel-payout` | Requires connected account with balance |
+| `create-transfer` / `get-transfer` | Requires Stripe Connect account |
+| `get-dispute` | Requires real disputed payment |
+| `create-onramp-session` / `get-onramp-session` / `get-onramp-quotes` | Requires Stripe Onramp beta |
+
+## How to run
+
+```bash
+# Export credentials
+export STRIPE_API_KEY="sk_test_..."
+
+# Run
+w3 workflow test --execute test/workflows/e2e.yaml
+```
