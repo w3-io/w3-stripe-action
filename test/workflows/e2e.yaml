@@ -20,6 +20,7 @@ jobs:
       # ── Customers ──────────────────────────────────────────────────────────
 
       - name: Create a test customer
+        id: create_customer
         uses: w3-io/w3-stripe-action@v0
         with:
           command: create-customer
@@ -40,19 +41,20 @@ jobs:
         with:
           command: get-customer
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
+          customer-id: ${{ steps.create_customer.outputs.result.id }}
 
       - name: Update customer metadata
         uses: w3-io/w3-stripe-action@v0
         with:
           command: update-customer
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
+          customer-id: ${{ steps.create_customer.outputs.result.id }}
           metadata: '{"source": "e2e-test"}'
 
       # ── Products & Prices ──────────────────────────────────────────────────
 
       - name: Create a product
+        id: create_product
         uses: w3-io/w3-stripe-action@v0
         with:
           command: create-product
@@ -72,23 +74,25 @@ jobs:
         with:
           command: get-product
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          product-id: ${{ steps.create-a-product.outputs.result.id }}
+          product-id: ${{ steps.create_product.outputs.result.id }}
 
       - name: Create a one-time price
+        id: create_onetime_price
         uses: w3-io/w3-stripe-action@v0
         with:
           command: create-price
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          product-id: ${{ steps.create-a-product.outputs.result.id }}
+          product-id: ${{ steps.create_product.outputs.result.id }}
           unit-amount: "2500"
           currency: usd
 
       - name: Create a recurring price
+        id: create_recurring_price
         uses: w3-io/w3-stripe-action@v0
         with:
           command: create-price
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          product-id: ${{ steps.create-a-product.outputs.result.id }}
+          product-id: ${{ steps.create_product.outputs.result.id }}
           unit-amount: "999"
           currency: usd
           recurring-interval: month
@@ -105,18 +109,19 @@ jobs:
         with:
           command: get-price
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          price-id: ${{ steps.create-a-one-time-price.outputs.result.id }}
+          price-id: ${{ steps.create_onetime_price.outputs.result.id }}
 
       # ── Payments ───────────────────────────────────────────────────────────
 
       - name: Create a payment intent
+        id: create_payment
         uses: w3-io/w3-stripe-action@v0
         with:
           command: create-payment
           api-key: ${{ secrets.STRIPE_API_KEY }}
           amount: "5000"
           currency: usd
-          customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
+          customer-id: ${{ steps.create_customer.outputs.result.id }}
           description: E2E test payment
 
       - name: Get the payment intent
@@ -124,7 +129,7 @@ jobs:
         with:
           command: get-payment
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          payment-id: ${{ steps.create-a-payment-intent.outputs.result.id }}
+          payment-id: ${{ steps.create_payment.outputs.result.id }}
 
       - name: List payment intents
         uses: w3-io/w3-stripe-action@v0
@@ -138,16 +143,17 @@ jobs:
         with:
           command: cancel-payment
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          payment-id: ${{ steps.create-a-payment-intent.outputs.result.id }}
+          payment-id: ${{ steps.create_payment.outputs.result.id }}
 
       # ── Invoices ───────────────────────────────────────────────────────────
 
       - name: Create an invoice
+        id: create_invoice
         uses: w3-io/w3-stripe-action@v0
         with:
           command: create-invoice
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
+          customer-id: ${{ steps.create_customer.outputs.result.id }}
           description: E2E test invoice
 
       - name: List invoices
@@ -162,17 +168,18 @@ jobs:
         with:
           command: get-invoice
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          invoice-id: ${{ steps.create-an-invoice.outputs.result.id }}
+          invoice-id: ${{ steps.create_invoice.outputs.result.id }}
 
       # ── Subscriptions ──────────────────────────────────────────────────────
 
       - name: Create a subscription
+        id: create_subscription
         uses: w3-io/w3-stripe-action@v0
         with:
           command: create-subscription
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
-          price-id: ${{ steps.create-a-recurring-price.outputs.result.id }}
+          customer-id: ${{ steps.create_customer.outputs.result.id }}
+          price-id: ${{ steps.create_recurring_price.outputs.result.id }}
 
       - name: List subscriptions
         uses: w3-io/w3-stripe-action@v0
@@ -186,14 +193,14 @@ jobs:
         with:
           command: get-subscription
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          subscription-id: ${{ steps.create-a-subscription.outputs.result.id }}
+          subscription-id: ${{ steps.create_subscription.outputs.result.id }}
 
       - name: Cancel the subscription
         uses: w3-io/w3-stripe-action@v0
         with:
           command: cancel-subscription
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          subscription-id: ${{ steps.create-a-subscription.outputs.result.id }}
+          subscription-id: ${{ steps.create_subscription.outputs.result.id }}
 
       # ── Balance ────────────────────────────────────────────────────────────
 
@@ -264,4 +271,4 @@ jobs:
         with:
           command: delete-customer
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          customer-id: ${{ steps.create-a-test-customer.outputs.result.id }}
+          customer-id: ${{ steps.create_customer.outputs.result.id }}
