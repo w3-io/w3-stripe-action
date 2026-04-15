@@ -248,12 +248,15 @@ jobs:
 
       - name: Attach test payment method to customer
         id: attach_pm
+        env:
+          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+          CUSTOMER_ID: ${{ fromJSON(steps.create_customer.outputs.result).id }}
         run: |
           curl -s -X POST "https://api.stripe.com/v1/payment_methods/pm_card_visa/attach" \
-            -u "${{ secrets.STRIPE_API_KEY }}:" \
-            -d "customer=${{ fromJSON(steps.create_customer.outputs.result).id }}"
-          curl -s -X POST "https://api.stripe.com/v1/customers/${{ fromJSON(steps.create_customer.outputs.result).id }}" \
-            -u "${{ secrets.STRIPE_API_KEY }}:" \
+            -u "${STRIPE_API_KEY}:" \
+            -d "customer=${CUSTOMER_ID}"
+          curl -s -X POST "https://api.stripe.com/v1/customers/${CUSTOMER_ID}" \
+            -u "${STRIPE_API_KEY}:" \
             -d "invoice_settings[default_payment_method]=pm_card_visa"
 
       - name: Create a subscription
