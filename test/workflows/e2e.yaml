@@ -320,6 +320,21 @@ jobs:
 
       # ── Transfers (platform → Connect account) ─────────────────────────────
 
+      # Seed the platform's AVAILABLE (not just pending) balance so the
+       # subsequent transfer can succeed. tok_bypassPending is Stripe's
+       # documented test token for this purpose — creates an immediately
+       # available 50.00 USD balance in test mode.
+       # https://stripe.com/docs/testing#available-balance
+      - name: Seed available balance via tok_bypassPending charge
+        env:
+          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+        run: |
+          curl -s -X POST "https://api.stripe.com/v1/charges" \
+            -u "${STRIPE_API_KEY}:" \
+            -d "amount=5000" \
+            -d "currency=usd" \
+            -d "source=tok_bypassPending" > /dev/null
+
       - name: Create a transfer to the test Connect account
         id: create_transfer
         uses: w3-io/w3-stripe-action@audie/stripe-buttonup
