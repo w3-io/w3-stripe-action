@@ -27936,6 +27936,7 @@ const router = (0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .createComma
         customer: optionalInput('customer-id'),
         description: optionalInput('description'),
         metadata: optionalJson('metadata'),
+        captureMethod: optionalInput('capture-method'),
       }),
     )
   },
@@ -28462,12 +28463,30 @@ class StripeClient {
   // Payment Intents
   // ---------------------------------------------------------------------------
 
-  async createPayment({ amount, currency = 'usd', customer, description, metadata }) {
+  async createPayment({
+    amount,
+    currency = 'usd',
+    customer,
+    description,
+    metadata,
+    captureMethod,
+  }) {
     if (amount == null) throw new StripeError('amount is required', { code: 'MISSING_AMOUNT' })
 
-    const params = { amount: String(amount), currency }
+    // Use automatic_payment_methods with allow_redirects=never so we
+    // don't need a return_url for Card-and-similar flows. This replaces
+    // the deprecated `payment_method_types[]=card`, which Stripe now
+    // ignores in favor of Dashboard-enabled methods (including those
+    // that require redirects).
+    const params = {
+      amount: String(amount),
+      currency,
+      'automatic_payment_methods[enabled]': 'true',
+      'automatic_payment_methods[allow_redirects]': 'never',
+    }
     if (customer) params.customer = customer
     if (description) params.description = description
+    if (captureMethod) params.capture_method = captureMethod
     StripeClient.applyMetadata(params, metadata)
 
     return this.request('POST', '/v1/payment_intents', params)

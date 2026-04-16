@@ -14,6 +14,7 @@ const router = createCommandRouter({
         customer: optionalInput('customer-id'),
         description: optionalInput('description'),
         metadata: optionalJson('metadata'),
+        captureMethod: optionalInput('capture-method'),
       }),
     )
   },

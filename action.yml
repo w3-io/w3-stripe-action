@@ -30,6 +30,9 @@ inputs:
   payment-method:
     description: 'Payment method ID for confirm-payment (pm_...)'
     required: false
+  capture-method:
+    description: 'Payment capture behavior: "automatic" (default) or "manual"'
+    required: false
   description:
     description: 'Description for payment, customer, product, invoice, or payout'
     required: false
