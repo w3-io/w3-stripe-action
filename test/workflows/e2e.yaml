@@ -243,18 +243,23 @@ jobs:
       # Uses a test payment method (pm_card_visa) attached inline via
       # the customer's default source. Stripe test mode supports this.
 
-      - name: Attach test payment method to customer
+      - name: Attach a test payment method to the customer
         id: attach_pm
         env:
           STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
           CUSTOMER_ID: ${{ fromJSON(steps.create_customer.outputs.result).id }}
         run: |
-          curl -s -X POST "https://api.stripe.com/v1/payment_methods/pm_card_visa/attach" \
+          # Attaching the shared test PM (pm_card_visa) returns a new,
+          # customer-scoped PM with a different ID. Capture it so later
+          # steps can reference this customer's actual PM.
+          attached=$(curl -s -X POST "https://api.stripe.com/v1/payment_methods/pm_card_visa/attach" \
             -u "${STRIPE_API_KEY}:" \
-            -d "customer=${CUSTOMER_ID}"
+            -d "customer=${CUSTOMER_ID}")
+          pm_id=$(echo "$attached" | jq -r '.id')
+          echo "pm_id=$pm_id" >> "$GITHUB_OUTPUT"
           curl -s -X POST "https://api.stripe.com/v1/customers/${CUSTOMER_ID}" \
             -u "${STRIPE_API_KEY}:" \
-            -d "invoice_settings[default_payment_method]=pm_card_visa"
+            -d "invoice_settings[default_payment_method]=$pm_id" > /dev/null
       - name: Create a subscription
         id: create_subscription
         uses: w3-io/w3-stripe-action@audie/stripe-buttonup
@@ -263,7 +268,7 @@ jobs:
           api-key: ${{ secrets.STRIPE_API_KEY }}
           customer-id: ${{ fromJSON(steps.create_customer.outputs.result).id }}
           price-id: ${{ fromJSON(steps.create_recurring_price.outputs.result).id }}
-          default-payment-method: pm_card_visa
+          default-payment-method: ${{ steps.attach_pm.outputs.pm_id }}
 
       - name: List subscriptions
         uses: w3-io/w3-stripe-action@audie/stripe-buttonup
