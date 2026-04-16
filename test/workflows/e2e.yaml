@@ -338,12 +338,9 @@ jobs:
           api-key: ${{ secrets.STRIPE_API_KEY }}
           payout-id: ${{ fromJSON(steps.create_payout.outputs.result).id }}
 
-      - name: Cancel the payout
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
-        with:
-          command: cancel-payout
-          api-key: ${{ secrets.STRIPE_API_KEY }}
-          payout-id: ${{ fromJSON(steps.create_payout.outputs.result).id }}
+      # SKIP: cancel-payout — in Stripe test mode, payouts transition from
+      # `pending` to `in_transit` / `paid` faster than this step can run, and
+      # the API rejects cancel for anything past pending. Documented in TODO.
 
       - name: List payouts
         uses: w3-io/w3-stripe-action@audie/stripe-buttonup
@@ -380,15 +377,62 @@ jobs:
           api-key: ${{ secrets.STRIPE_API_KEY }}
           limit: '5'
 
-      # ── Disputes ───────────────────────────────────────────────────────────
-      # SKIP: get-dispute requires a real disputed payment
+      # ── Disputes (synthesized via pm_card_createDispute test PM) ───────────
+      # Stripe's test PM `pm_card_createDispute` succeeds at capture time
+      # then generates a dispute shortly after. We create + confirm +
+      # capture a small charge against it, wait briefly, then fetch the
+      # resulting dispute.
 
-      - name: List disputes
+      - name: Create a payment intent for dispute test
+        id: dispute_payment
+        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        with:
+          command: create-payment
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          amount: '200'
+          currency: usd
+          customer-id: ${{ fromJSON(steps.create_customer.outputs.result).id }}
+          description: E2E dispute-test payment
+
+      - name: Confirm payment with pm_card_createDispute
+        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        with:
+          command: confirm-payment
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          payment-id: ${{ fromJSON(steps.dispute_payment.outputs.result).id }}
+          payment-method: pm_card_createDispute
+
+      - name: Wait for Stripe to create the dispute
+        run: sleep 10
+
+      - name: List disputes (expect the new dispute)
+        id: list_disputes
         uses: w3-io/w3-stripe-action@audie/stripe-buttonup
         with:
           command: list-disputes
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
+
+      - name: Extract first dispute ID
+        id: dispute
+        run: |
+          id=$(echo '${{ steps.list_disputes.outputs.result }}' | jq -r '.data[0].id // ""')
+          if [ -z "$id" ]; then
+            echo 'no dispute yet — extending wait and retrying list' >&2
+            sleep 10
+            id=$(curl -s "https://api.stripe.com/v1/disputes?limit=1" \
+              -u "${STRIPE_API_KEY}:" | jq -r '.data[0].id // ""')
+          fi
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+        env:
+          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+
+      - name: Get the dispute
+        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        with:
+          command: get-dispute
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          dispute-id: ${{ steps.dispute.outputs.id }}
 
       # ── Events ─────────────────────────────────────────────────────────────
 
