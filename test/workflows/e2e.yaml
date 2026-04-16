@@ -306,25 +306,11 @@ jobs:
           api-key: ${{ secrets.STRIPE_API_KEY }}
           limit: "5"
 
-      # ── Payouts ────────────────────────────────────────────────────────────
-      # SKIP: create-payout requires connected account with available balance
-      # SKIP: get-payout requires a payout ID from create-payout
-      # SKIP: cancel-payout requires a pending payout ID
-
-      - name: List payouts
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
-        with:
-          command: list-payouts
-          api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
-
-      # ── Transfers (platform → Connect account) ─────────────────────────────
-
-      # Seed the platform's AVAILABLE (not just pending) balance so the
-       # subsequent transfer can succeed. tok_bypassPending is Stripe's
-       # documented test token for this purpose — creates an immediately
-       # available 50.00 USD balance in test mode.
-       # https://stripe.com/docs/testing#available-balance
+      # ── Payouts & Transfers — need available balance ───────────────────────
+      # Seed the platform's AVAILABLE balance with tok_bypassPending so both
+      # create-payout and create-transfer succeed in test mode. Each consumes
+      # from the same pool, so we seed enough to cover both (5000 = $50).
+      # https://stripe.com/docs/testing#available-balance
       - name: Seed available balance via tok_bypassPending charge
         env:
           STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
@@ -334,6 +320,40 @@ jobs:
             -d "amount=5000" \
             -d "currency=usd" \
             -d "source=tok_bypassPending" > /dev/null
+
+      - name: Create a payout from platform available balance
+        id: create_payout
+        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        with:
+          command: create-payout
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          amount: '500'
+          currency: usd
+          description: E2E test payout
+
+      - name: Get the payout
+        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        with:
+          command: get-payout
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          payout-id: ${{ fromJSON(steps.create_payout.outputs.result).id }}
+
+      - name: Cancel the payout
+        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        with:
+          command: cancel-payout
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          payout-id: ${{ fromJSON(steps.create_payout.outputs.result).id }}
+
+      - name: List payouts
+        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        with:
+          command: list-payouts
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          limit: '5'
+
+      # ── Transfers (platform → Connect account) ─────────────────────────────
+      # Uses the remaining available balance from the seed step above.
 
       - name: Create a transfer to the test Connect account
         id: create_transfer
