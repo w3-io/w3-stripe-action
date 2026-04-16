@@ -263,6 +263,7 @@ jobs:
           api-key: ${{ secrets.STRIPE_API_KEY }}
           customer-id: ${{ fromJSON(steps.create_customer.outputs.result).id }}
           price-id: ${{ fromJSON(steps.create_recurring_price.outputs.result).id }}
+          default-payment-method: pm_card_visa
 
       - name: List subscriptions
         uses: w3-io/w3-stripe-action@audie/stripe-buttonup

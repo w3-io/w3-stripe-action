@@ -224,10 +224,11 @@ export class StripeClient {
   // Subscriptions
   // ---------------------------------------------------------------------------
 
-  async createSubscription({ customer, price, metadata }) {
+  async createSubscription({ customer, price, metadata, defaultPaymentMethod }) {
     if (!customer) throw new StripeError('customer-id is required', { code: 'MISSING_CUSTOMER_ID' })
     if (!price) throw new StripeError('price-id is required', { code: 'MISSING_PRICE_ID' })
     const params = { customer, 'items[0][price]': price }
+    if (defaultPaymentMethod) params.default_payment_method = defaultPaymentMethod
     StripeClient.applyMetadata(params, metadata)
     return this.request('POST', '/v1/subscriptions', params)
   }

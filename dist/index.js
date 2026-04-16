@@ -28110,6 +28110,7 @@ const router = (0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .createComma
         customer: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('customer-id', { required: true }),
         price: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('price-id', { required: true }),
         metadata: optionalJson('metadata'),
+        defaultPaymentMethod: optionalInput('default-payment-method'),
       }),
     )
   },
@@ -28642,10 +28643,11 @@ class StripeClient {
   // Subscriptions
   // ---------------------------------------------------------------------------
 
-  async createSubscription({ customer, price, metadata }) {
+  async createSubscription({ customer, price, metadata, defaultPaymentMethod }) {
     if (!customer) throw new StripeError('customer-id is required', { code: 'MISSING_CUSTOMER_ID' })
     if (!price) throw new StripeError('price-id is required', { code: 'MISSING_PRICE_ID' })
     const params = { customer, 'items[0][price]': price }
+    if (defaultPaymentMethod) params.default_payment_method = defaultPaymentMethod
     StripeClient.applyMetadata(params, metadata)
     return this.request('POST', '/v1/subscriptions', params)
   }

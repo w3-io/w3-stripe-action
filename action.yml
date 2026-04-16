@@ -33,6 +33,9 @@ inputs:
   capture-method:
     description: 'Payment capture behavior: "automatic" (default) or "manual"'
     required: false
+  default-payment-method:
+    description: 'Default payment method ID for subscription billing (pm_...)'
+    required: false
   description:
     description: 'Description for payment, customer, product, invoice, or payout'
     required: false
