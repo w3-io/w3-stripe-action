@@ -127,48 +127,44 @@ jobs:
           description: E2E test payment for capture lifecycle
           metadata: '{"capture_method": "manual"}'
 
-      # SKIP: confirm/capture/refund chain requires payment methods enabled in Stripe Dashboard
-      # SKIP: requires test payment method attached to customer
-      #       - name: Confirm the payment intent with test card
-      #         id: confirm_payment
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: confirm-payment
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           payment-id: ${{ fromJSON(steps.create_capture_payment.outputs.result).id }}
-      #           payment-method: pm_card_visa
-      # 
-      #       - name: Capture the confirmed payment
-      #         id: capture_payment
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: capture-payment
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           payment-id: ${{ fromJSON(steps.create_capture_payment.outputs.result).id }}
-      # 
-      #       - name: Create a refund for the captured payment
-      #         id: create_refund
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: create-refund
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           payment-id: ${{ fromJSON(steps.create_capture_payment.outputs.result).id }}
-      #           amount: "2500"
-      #           reason: requested_by_customer
+      - name: Confirm the payment intent with test card
+        id: confirm_payment
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: confirm-payment
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          payment-id: ${{ fromJSON(steps.create_capture_payment.outputs.result).id }}
+          payment-method: pm_card_visa
 
-      # SKIP: extract-refund-id requires create-refund output (payment method not enabled)
-      # - name: Extract refund ID
-      #   id: refund
-      #   run: |
-      #     echo "id=$(echo '${{ steps.create_refund.outputs.result }}' | jq -r '.id')" >> "$GITHUB_OUTPUT"
+      - name: Capture the confirmed payment
+        id: capture_payment
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: capture-payment
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          payment-id: ${{ fromJSON(steps.create_capture_payment.outputs.result).id }}
 
-      # SKIP: get-refund requires a refund ID from create-refund
-      # - name: Get the refund
-      #   uses: w3-io/w3-stripe-action@v0
-      #   with:
-      #     command: get-refund
-      #     api-key: ${{ secrets.STRIPE_API_KEY }}
-      #     refund-id: ${{ steps.refund.outputs.id }}
+      - name: Create a refund for the captured payment
+        id: create_refund
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: create-refund
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          payment-id: ${{ fromJSON(steps.create_capture_payment.outputs.result).id }}
+          amount: "2500"
+          reason: requested_by_customer
+
+      - name: Extract refund ID
+        id: refund
+        run: |
+          echo "id=$(echo '${{ steps.create_refund.outputs.result }}' | jq -r '.id')" >> "$GITHUB_OUTPUT"
+
+      - name: Get the refund
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: get-refund
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          refund-id: ${{ steps.refund.outputs.id }}
 
       - name: List refunds
         uses: w3-io/w3-stripe-action@v0
@@ -259,39 +255,37 @@ jobs:
           curl -s -X POST "https://api.stripe.com/v1/customers/${CUSTOMER_ID}" \
             -u "${STRIPE_API_KEY}:" \
             -d "invoice_settings[default_payment_method]=pm_card_visa"
-      # SKIP: requires payment method attached to customer
-      # 
-      #       - name: Create a subscription
-      #         id: create_subscription
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: create-subscription
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           customer-id: ${{ fromJSON(steps.create_customer.outputs.result).id }}
-      #           price-id: ${{ fromJSON(steps.create_recurring_price.outputs.result).id }}
-      # 
-      #       - name: List subscriptions
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: list-subscriptions
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           limit: "5"
-      # 
-      #       - name: Get the subscription
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: get-subscription
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           subscription-id: ${{ fromJSON(steps.create_subscription.outputs.result).id }}
-      # 
-      #       - name: Cancel the subscription
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: cancel-subscription
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           subscription-id: ${{ fromJSON(steps.create_subscription.outputs.result).id }}
-      # 
-      #       # ── Balance ────────────────────────────────────────────────────────────
+      - name: Create a subscription
+        id: create_subscription
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: create-subscription
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          customer-id: ${{ fromJSON(steps.create_customer.outputs.result).id }}
+          price-id: ${{ fromJSON(steps.create_recurring_price.outputs.result).id }}
+
+      - name: List subscriptions
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: list-subscriptions
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          limit: "5"
+
+      - name: Get the subscription
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: get-subscription
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          subscription-id: ${{ fromJSON(steps.create_subscription.outputs.result).id }}
+
+      - name: Cancel the subscription
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: cancel-subscription
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          subscription-id: ${{ fromJSON(steps.create_subscription.outputs.result).id }}
+
+      # ── Balance ────────────────────────────────────────────────────────────
 
       - name: Get account balance
         uses: w3-io/w3-stripe-action@v0
