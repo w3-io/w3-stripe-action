@@ -23,7 +23,7 @@ jobs:
 
       - name: Create a test customer
         id: create_customer
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: create-customer
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -32,21 +32,21 @@ jobs:
           description: Created by W3 e2e test workflow
 
       - name: List customers
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: list-customers
           api-key: ${{ secrets.STRIPE_API_KEY }}
           limit: "5"
 
       - name: Get the created customer
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: get-customer
           api-key: ${{ secrets.STRIPE_API_KEY }}
           customer-id: ${{ fromJSON(steps.create_customer.outputs.result).id }}
 
       - name: Update customer metadata
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: update-customer
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -57,7 +57,7 @@ jobs:
 
       - name: Create a product
         id: create_product
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: create-product
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -65,14 +65,14 @@ jobs:
           description: Test product for e2e workflow
 
       - name: List products
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: list-products
           api-key: ${{ secrets.STRIPE_API_KEY }}
           limit: "5"
 
       - name: Get the created product
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: get-product
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -80,7 +80,7 @@ jobs:
 
       - name: Create a one-time price
         id: create_onetime_price
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: create-price
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -90,7 +90,7 @@ jobs:
 
       - name: Create a recurring price
         id: create_recurring_price
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: create-price
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -100,14 +100,14 @@ jobs:
           recurring-interval: month
 
       - name: List prices
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: list-prices
           api-key: ${{ secrets.STRIPE_API_KEY }}
           limit: "5"
 
       - name: Get the one-time price
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: get-price
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -117,7 +117,7 @@ jobs:
 
       - name: Create a payment intent (manual capture)
         id: create_capture_payment
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: create-payment
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -129,7 +129,7 @@ jobs:
 
       - name: Confirm the payment intent with test card
         id: confirm_payment
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: confirm-payment
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -138,7 +138,7 @@ jobs:
 
       - name: Capture the confirmed payment
         id: capture_payment
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: capture-payment
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -146,7 +146,7 @@ jobs:
 
       - name: Create a refund for the captured payment
         id: create_refund
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: create-refund
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -160,14 +160,14 @@ jobs:
           echo "id=$(echo '${{ steps.create_refund.outputs.result }}' | jq -r '.id')" >> "$GITHUB_OUTPUT"
 
       - name: Get the refund
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: get-refund
           api-key: ${{ secrets.STRIPE_API_KEY }}
           refund-id: ${{ steps.refund.outputs.id }}
 
       - name: List refunds
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: list-refunds
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -177,7 +177,7 @@ jobs:
 
       - name: Create a payment intent
         id: create_payment
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: create-payment
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -187,21 +187,21 @@ jobs:
           description: E2E test payment for cancel
 
       - name: Get the payment intent
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: get-payment
           api-key: ${{ secrets.STRIPE_API_KEY }}
           payment-id: ${{ fromJSON(steps.create_payment.outputs.result).id }}
 
       - name: List payment intents
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: list-payments
           api-key: ${{ secrets.STRIPE_API_KEY }}
           limit: "5"
 
       - name: Cancel the payment intent
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: cancel-payment
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -211,7 +211,7 @@ jobs:
 
       - name: Create an invoice
         id: create_invoice
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: create-invoice
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -219,21 +219,21 @@ jobs:
           description: E2E test invoice
 
       - name: Get the invoice
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: get-invoice
           api-key: ${{ secrets.STRIPE_API_KEY }}
           invoice-id: ${{ fromJSON(steps.create_invoice.outputs.result).id }}
 
       - name: Pay the invoice
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: pay-invoice
           api-key: ${{ secrets.STRIPE_API_KEY }}
           invoice-id: ${{ fromJSON(steps.create_invoice.outputs.result).id }}
 
       - name: List invoices
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: list-invoices
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -262,7 +262,7 @@ jobs:
             -d "invoice_settings[default_payment_method]=$pm_id" > /dev/null
       - name: Create a subscription
         id: create_subscription
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: create-subscription
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -271,21 +271,21 @@ jobs:
           default-payment-method: ${{ steps.attach_pm.outputs.pm_id }}
 
       - name: List subscriptions
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: list-subscriptions
           api-key: ${{ secrets.STRIPE_API_KEY }}
           limit: '5'
 
       - name: Get the subscription
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: get-subscription
           api-key: ${{ secrets.STRIPE_API_KEY }}
           subscription-id: ${{ fromJSON(steps.create_subscription.outputs.result).id }}
 
       - name: Cancel the subscription
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: cancel-subscription
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -294,13 +294,13 @@ jobs:
       # ── Balance ────────────────────────────────────────────────────────────
 
       - name: Get account balance
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: get-balance
           api-key: ${{ secrets.STRIPE_API_KEY }}
 
       - name: List balance transactions
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: list-balance-transactions
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -323,7 +323,7 @@ jobs:
 
       - name: Create a payout from platform available balance
         id: create_payout
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: create-payout
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -332,7 +332,7 @@ jobs:
           description: E2E test payout
 
       - name: Get the payout
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: get-payout
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -343,7 +343,7 @@ jobs:
       # the API rejects cancel for anything past pending. Documented in TODO.
 
       - name: List payouts
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: list-payouts
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -354,7 +354,7 @@ jobs:
 
       - name: Create a transfer to the test Connect account
         id: create_transfer
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: create-transfer
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -364,14 +364,14 @@ jobs:
           description: E2E test transfer
 
       - name: Get the transfer
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: get-transfer
           api-key: ${{ secrets.STRIPE_API_KEY }}
           transfer-id: ${{ fromJSON(steps.create_transfer.outputs.result).id }}
 
       - name: List transfers
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: list-transfers
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -385,7 +385,7 @@ jobs:
 
       - name: Create a payment intent for dispute test
         id: dispute_payment
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: create-payment
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -395,7 +395,7 @@ jobs:
           description: E2E dispute-test payment
 
       - name: Confirm payment with pm_card_createDispute
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: confirm-payment
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -407,7 +407,7 @@ jobs:
 
       - name: List disputes (expect the new dispute)
         id: list_disputes
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: list-disputes
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -428,7 +428,7 @@ jobs:
           STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
 
       - name: Get the dispute
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: get-dispute
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -438,7 +438,7 @@ jobs:
 
       - name: List events
         id: list_events
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: list-events
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -450,7 +450,7 @@ jobs:
           echo "id=$(echo '${{ steps.list_events.outputs.result }}' | jq -r '.data[0].id')" >> "$GITHUB_OUTPUT"
 
       - name: Get an event
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: get-event
           api-key: ${{ secrets.STRIPE_API_KEY }}
@@ -464,7 +464,7 @@ jobs:
       # ── Cleanup ────────────────────────────────────────────────────────────
 
       - name: Delete the test customer
-        uses: w3-io/w3-stripe-action@audie/stripe-buttonup
+        uses: w3-io/w3-stripe-action@v0
         with:
           command: delete-customer
           api-key: ${{ secrets.STRIPE_API_KEY }}
