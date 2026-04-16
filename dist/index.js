@@ -28270,6 +28270,33 @@ const router = (0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .createComma
     )
   },
 
+  // Charges (legacy)
+  'create-charge': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.createCharge({
+        amount: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('amount', { required: true }),
+        currency: optionalInput('currency'),
+        source: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('source', { required: true }),
+        description: optionalInput('description'),
+        metadata: optionalJson('metadata'),
+      }),
+    )
+  },
+
+  // Test helpers
+  'create-test-dispute': async () => {
+    const client = createClient()
+    ;(0,_w3_io_action_core__WEBPACK_IMPORTED_MODULE_0__/* .setJsonOutput */ .mI)(
+      'result',
+      await client.createTestDispute({
+        amount: optionalNumber('amount') || 1000,
+        currency: optionalInput('currency') || 'usd',
+      }),
+    )
+  },
+
   // Disputes
   'get-dispute': async () => {
     const client = createClient()
@@ -28779,6 +28806,49 @@ class StripeClient {
     if (destination) params.set('destination', destination)
     params.set('limit', String(limit))
     return this.request('GET', `/v1/transfers?${params.toString()}`)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Charges (legacy)
+  // ---------------------------------------------------------------------------
+
+  async createCharge({ amount, currency = 'usd', source, description, metadata }) {
+    if (amount == null) throw new StripeError('amount is required', { code: 'MISSING_AMOUNT' })
+    if (!source) throw new StripeError('source is required', { code: 'MISSING_SOURCE' })
+    const params = { amount: String(amount), currency, source }
+    if (description) params.description = description
+    StripeClient.applyMetadata(params, metadata)
+    return this.request('POST', '/v1/charges', params)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Test helpers
+  // ---------------------------------------------------------------------------
+
+  async createTestDispute({ amount = 1000, currency = 'usd' } = {}) {
+    // Create a PaymentIntent with the test dispute card and confirm immediately.
+    const params = {
+      amount: String(amount),
+      currency,
+      payment_method: 'pm_card_createDispute',
+      confirm: 'true',
+    }
+    const pi = await this.request('POST', '/v1/payment_intents', params)
+
+    // Stripe generates the dispute asynchronously. Poll for it.
+    for (let i = 0; i < 10; i++) {
+      const disputes = await this.request(
+        'GET',
+        `/v1/disputes?payment_intent=${encodeURIComponent(pi.id)}&limit=1`,
+      )
+      if (disputes.data && disputes.data.length > 0) {
+        return { payment_intent: pi, dispute: disputes.data[0] }
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+    }
+
+    // Return the PI even if the dispute hasn't appeared yet
+    return { payment_intent: pi, dispute: null }
   }
 
   // ---------------------------------------------------------------------------

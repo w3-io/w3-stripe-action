@@ -5,7 +5,7 @@ author: 'w3-io'
 inputs:
   command:
     description: >
-      Operation to perform. See docs/guide.md for the full list of 41 commands
+      Operation to perform. See docs/guide.md for the full list of 43 commands
       across payments, customers, subscriptions, invoices, products, prices,
       balance, refunds, payouts, transfers, disputes, and events.
     required: true
@@ -100,6 +100,11 @@ inputs:
     required: false
   destination:
     description: 'Connected account ID for transfers (acct_...)'
+    required: false
+
+  # Charge inputs (legacy)
+  source:
+    description: 'Token or source for legacy charge (tok_... or src_...)'
     required: false
 
   # Dispute inputs

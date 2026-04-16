@@ -563,6 +563,52 @@ commands:
         type: object
         description: '{data: [...], has_more}'
 
+  # -- Charges (legacy) --------------------------------------------------------
+
+  - name: create-charge
+    description: Create a direct charge via the legacy /v1/charges endpoint.
+    inputs:
+      amount:
+        type: number
+        required: true
+        description: Amount in cents (1000 = $10.00)
+      currency:
+        type: string
+        required: false
+        description: 'ISO currency code (default: usd)'
+      source:
+        type: string
+        required: true
+        description: Token or source (tok_... or src_...)
+      description:
+        type: string
+        required: false
+      metadata:
+        type: string
+        required: false
+    outputs:
+      result:
+        type: object
+        description: '{id, amount, currency, status, source}'
+
+  # -- Test helpers ------------------------------------------------------------
+
+  - name: create-test-dispute
+    description: Create a disputed payment using Stripe test tokens. Test mode only.
+    inputs:
+      amount:
+        type: number
+        required: false
+        description: 'Amount in cents (default: 1000)'
+      currency:
+        type: string
+        required: false
+        description: 'ISO currency code (default: usd)'
+    outputs:
+      result:
+        type: object
+        description: '{payment_intent, dispute}'
+
   # -- Disputes ----------------------------------------------------------------
 
   - name: get-dispute
