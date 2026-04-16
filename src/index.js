@@ -14,6 +14,7 @@ const router = createCommandRouter({
         customer: optionalInput('customer-id'),
         description: optionalInput('description'),
         metadata: optionalJson('metadata'),
+        captureMethod: optionalInput('capture-method'),
       }),
     )
   },
@@ -187,6 +188,7 @@ const router = createCommandRouter({
         customer: core.getInput('customer-id', { required: true }),
         price: core.getInput('price-id', { required: true }),
         metadata: optionalJson('metadata'),
+        defaultPaymentMethod: optionalInput('default-payment-method'),
       }),
     )
   },

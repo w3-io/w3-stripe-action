@@ -45,12 +45,30 @@ export class StripeClient {
   // Payment Intents
   // ---------------------------------------------------------------------------
 
-  async createPayment({ amount, currency = 'usd', customer, description, metadata }) {
+  async createPayment({
+    amount,
+    currency = 'usd',
+    customer,
+    description,
+    metadata,
+    captureMethod,
+  }) {
     if (amount == null) throw new StripeError('amount is required', { code: 'MISSING_AMOUNT' })
 
-    const params = { amount: String(amount), currency, 'payment_method_types[]': 'card' }
+    // Use automatic_payment_methods with allow_redirects=never so we
+    // don't need a return_url for Card-and-similar flows. This replaces
+    // the deprecated `payment_method_types[]=card`, which Stripe now
+    // ignores in favor of Dashboard-enabled methods (including those
+    // that require redirects).
+    const params = {
+      amount: String(amount),
+      currency,
+      'automatic_payment_methods[enabled]': 'true',
+      'automatic_payment_methods[allow_redirects]': 'never',
+    }
     if (customer) params.customer = customer
     if (description) params.description = description
+    if (captureMethod) params.capture_method = captureMethod
     StripeClient.applyMetadata(params, metadata)
 
     return this.request('POST', '/v1/payment_intents', params)
@@ -206,10 +224,11 @@ export class StripeClient {
   // Subscriptions
   // ---------------------------------------------------------------------------
 
-  async createSubscription({ customer, price, metadata }) {
+  async createSubscription({ customer, price, metadata, defaultPaymentMethod }) {
     if (!customer) throw new StripeError('customer-id is required', { code: 'MISSING_CUSTOMER_ID' })
     if (!price) throw new StripeError('price-id is required', { code: 'MISSING_PRICE_ID' })
     const params = { customer, 'items[0][price]': price }
+    if (defaultPaymentMethod) params.default_payment_method = defaultPaymentMethod
     StripeClient.applyMetadata(params, metadata)
     return this.request('POST', '/v1/subscriptions', params)
   }

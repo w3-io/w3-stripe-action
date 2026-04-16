@@ -36,7 +36,7 @@ jobs:
         with:
           command: list-customers
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
       - name: Get the created customer
         uses: w3-io/w3-stripe-action@v0
@@ -69,7 +69,7 @@ jobs:
         with:
           command: list-products
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
       - name: Get the created product
         uses: w3-io/w3-stripe-action@v0
@@ -85,7 +85,7 @@ jobs:
           command: create-price
           api-key: ${{ secrets.STRIPE_API_KEY }}
           product-id: ${{ fromJSON(steps.create_product.outputs.result).id }}
-          unit-amount: "2500"
+          unit-amount: '2500'
           currency: usd
 
       - name: Create a recurring price
@@ -95,7 +95,7 @@ jobs:
           command: create-price
           api-key: ${{ secrets.STRIPE_API_KEY }}
           product-id: ${{ fromJSON(steps.create_product.outputs.result).id }}
-          unit-amount: "999"
+          unit-amount: '999'
           currency: usd
           recurring-interval: month
 
@@ -104,7 +104,7 @@ jobs:
         with:
           command: list-prices
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
       - name: Get the one-time price
         uses: w3-io/w3-stripe-action@v0
@@ -121,58 +121,57 @@ jobs:
         with:
           command: create-payment
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          amount: "5000"
+          amount: '5000'
           currency: usd
           customer-id: ${{ fromJSON(steps.create_customer.outputs.result).id }}
           description: E2E test payment for capture lifecycle
-          metadata: '{"capture_method": "manual"}'
+          capture-method: manual
 
-      # SKIP: confirm/capture/refund requires Stripe Dashboard payment method configuration
-      #       - name: Confirm the payment intent with test card
-      #         id: confirm_payment
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: confirm-payment
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           payment-id: ${{ fromJSON(steps.create_capture_payment.outputs.result).id }}
-      #           payment-method: pm_card_visa
-      # 
-      #       - name: Capture the confirmed payment
-      #         id: capture_payment
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: capture-payment
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           payment-id: ${{ fromJSON(steps.create_capture_payment.outputs.result).id }}
-      # 
-      #       - name: Create a refund for the captured payment
-      #         id: create_refund
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: create-refund
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           payment-id: ${{ fromJSON(steps.create_capture_payment.outputs.result).id }}
-      #           amount: "2500"
-      #           reason: requested_by_customer
-      # 
-      #       - name: Extract refund ID
-      #         id: refund
-      #         run: |
-      #           echo "id=$(echo '${{ steps.create_refund.outputs.result }}' | jq -r '.id')" >> "$GITHUB_OUTPUT"
-      # 
-      #       - name: Get the refund
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: get-refund
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           refund-id: ${{ steps.refund.outputs.id }}
+      - name: Confirm the payment intent with test card
+        id: confirm_payment
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: confirm-payment
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          payment-id: ${{ fromJSON(steps.create_capture_payment.outputs.result).id }}
+          payment-method: pm_card_visa
+
+      - name: Capture the confirmed payment
+        id: capture_payment
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: capture-payment
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          payment-id: ${{ fromJSON(steps.create_capture_payment.outputs.result).id }}
+
+      - name: Create a refund for the captured payment
+        id: create_refund
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: create-refund
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          payment-id: ${{ fromJSON(steps.create_capture_payment.outputs.result).id }}
+          amount: '2500'
+          reason: requested_by_customer
+
+      - name: Extract refund ID
+        id: refund
+        run: |
+          echo "id=$(echo '${{ steps.create_refund.outputs.result }}' | jq -r '.id')" >> "$GITHUB_OUTPUT"
+
+      - name: Get the refund
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: get-refund
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          refund-id: ${{ steps.refund.outputs.id }}
 
       - name: List refunds
         uses: w3-io/w3-stripe-action@v0
         with:
           command: list-refunds
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
       # ── Payments (simple create, get, list, cancel) ────────────────────────
 
@@ -182,7 +181,7 @@ jobs:
         with:
           command: create-payment
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          amount: "3000"
+          amount: '3000'
           currency: usd
           customer-id: ${{ fromJSON(steps.create_customer.outputs.result).id }}
           description: E2E test payment for cancel
@@ -199,7 +198,7 @@ jobs:
         with:
           command: list-payments
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
       - name: Cancel the payment intent
         uses: w3-io/w3-stripe-action@v0
@@ -238,55 +237,60 @@ jobs:
         with:
           command: list-invoices
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
       # ── Subscriptions (create -> list -> get -> cancel) ────────────────────
       # Uses a test payment method (pm_card_visa) attached inline via
       # the customer's default source. Stripe test mode supports this.
 
-      - name: Attach test payment method to customer
+      - name: Attach a test payment method to the customer
         id: attach_pm
         env:
           STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
           CUSTOMER_ID: ${{ fromJSON(steps.create_customer.outputs.result).id }}
         run: |
-          curl -s -X POST "https://api.stripe.com/v1/payment_methods/pm_card_visa/attach" \
+          # Attaching the shared test PM (pm_card_visa) returns a new,
+          # customer-scoped PM with a different ID. Capture it so later
+          # steps can reference this customer's actual PM.
+          attached=$(curl -s -X POST "https://api.stripe.com/v1/payment_methods/pm_card_visa/attach" \
             -u "${STRIPE_API_KEY}:" \
-            -d "customer=${CUSTOMER_ID}"
+            -d "customer=${CUSTOMER_ID}")
+          pm_id=$(echo "$attached" | jq -r '.id')
+          echo "pm_id=$pm_id" >> "$GITHUB_OUTPUT"
           curl -s -X POST "https://api.stripe.com/v1/customers/${CUSTOMER_ID}" \
             -u "${STRIPE_API_KEY}:" \
-            -d "invoice_settings[default_payment_method]=pm_card_visa"
-      # SKIP: subscriptions require payment method attached to customer
-      #       - name: Create a subscription
-      #         id: create_subscription
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: create-subscription
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           customer-id: ${{ fromJSON(steps.create_customer.outputs.result).id }}
-      #           price-id: ${{ fromJSON(steps.create_recurring_price.outputs.result).id }}
-      # 
-      #       - name: List subscriptions
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: list-subscriptions
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           limit: "5"
-      # 
-      #       - name: Get the subscription
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: get-subscription
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           subscription-id: ${{ fromJSON(steps.create_subscription.outputs.result).id }}
-      # 
-      #       - name: Cancel the subscription
-      #         uses: w3-io/w3-stripe-action@v0
-      #         with:
-      #           command: cancel-subscription
-      #           api-key: ${{ secrets.STRIPE_API_KEY }}
-      #           subscription-id: ${{ fromJSON(steps.create_subscription.outputs.result).id }}
-      # 
+            -d "invoice_settings[default_payment_method]=$pm_id" > /dev/null
+      - name: Create a subscription
+        id: create_subscription
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: create-subscription
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          customer-id: ${{ fromJSON(steps.create_customer.outputs.result).id }}
+          price-id: ${{ fromJSON(steps.create_recurring_price.outputs.result).id }}
+          default-payment-method: ${{ steps.attach_pm.outputs.pm_id }}
+
+      - name: List subscriptions
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: list-subscriptions
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          limit: '5'
+
+      - name: Get the subscription
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: get-subscription
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          subscription-id: ${{ fromJSON(steps.create_subscription.outputs.result).id }}
+
+      - name: Cancel the subscription
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: cancel-subscription
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          subscription-id: ${{ fromJSON(steps.create_subscription.outputs.result).id }}
+
       # ── Balance ────────────────────────────────────────────────────────────
 
       - name: Get account balance
@@ -300,40 +304,135 @@ jobs:
         with:
           command: list-balance-transactions
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
-      # ── Payouts ────────────────────────────────────────────────────────────
-      # SKIP: create-payout requires connected account with available balance
-      # SKIP: get-payout requires a payout ID from create-payout
-      # SKIP: cancel-payout requires a pending payout ID
+      # ── Payouts & Transfers — need available balance ───────────────────────
+      # Seed the platform's AVAILABLE balance with tok_bypassPending so both
+      # create-payout and create-transfer succeed in test mode. Each consumes
+      # from the same pool, so we seed enough to cover both (5000 = $50).
+      # https://stripe.com/docs/testing#available-balance
+      - name: Seed available balance via tok_bypassPending charge
+        env:
+          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+        run: |
+          curl -s -X POST "https://api.stripe.com/v1/charges" \
+            -u "${STRIPE_API_KEY}:" \
+            -d "amount=5000" \
+            -d "currency=usd" \
+            -d "source=tok_bypassPending" > /dev/null
+
+      - name: Create a payout from platform available balance
+        id: create_payout
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: create-payout
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          amount: '500'
+          currency: usd
+          description: E2E test payout
+
+      - name: Get the payout
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: get-payout
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          payout-id: ${{ fromJSON(steps.create_payout.outputs.result).id }}
+
+      # SKIP: cancel-payout — in Stripe test mode, payouts transition from
+      # `pending` to `in_transit` / `paid` faster than this step can run, and
+      # the API rejects cancel for anything past pending. Documented in TODO.
 
       - name: List payouts
         uses: w3-io/w3-stripe-action@v0
         with:
           command: list-payouts
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
-      # ── Transfers ──────────────────────────────────────────────────────────
-      # SKIP: create-transfer requires a connected account (Stripe Connect)
-      # SKIP: get-transfer requires a transfer ID from create-transfer
+      # ── Transfers (platform → Connect account) ─────────────────────────────
+      # Uses the remaining available balance from the seed step above.
+
+      - name: Create a transfer to the test Connect account
+        id: create_transfer
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: create-transfer
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          amount: '1000'
+          currency: usd
+          destination: acct_1TMs4NApHKEziUWL
+          description: E2E test transfer
+
+      - name: Get the transfer
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: get-transfer
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          transfer-id: ${{ fromJSON(steps.create_transfer.outputs.result).id }}
 
       - name: List transfers
         uses: w3-io/w3-stripe-action@v0
         with:
           command: list-transfers
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
-      # ── Disputes ───────────────────────────────────────────────────────────
-      # SKIP: get-dispute requires a real disputed payment
+      # ── Disputes (synthesized via pm_card_createDispute test PM) ───────────
+      # Stripe's test PM `pm_card_createDispute` succeeds at capture time
+      # then generates a dispute shortly after. We create + confirm +
+      # capture a small charge against it, wait briefly, then fetch the
+      # resulting dispute.
 
-      - name: List disputes
+      - name: Create a payment intent for dispute test
+        id: dispute_payment
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: create-payment
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          amount: '200'
+          currency: usd
+          customer-id: ${{ fromJSON(steps.create_customer.outputs.result).id }}
+          description: E2E dispute-test payment
+
+      - name: Confirm payment with pm_card_createDispute
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: confirm-payment
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          payment-id: ${{ fromJSON(steps.dispute_payment.outputs.result).id }}
+          payment-method: pm_card_createDispute
+
+      - name: Wait for Stripe to create the dispute
+        run: sleep 10
+
+      - name: List disputes (expect the new dispute)
+        id: list_disputes
         uses: w3-io/w3-stripe-action@v0
         with:
           command: list-disputes
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
+
+      - name: Extract first dispute ID
+        id: dispute
+        run: |
+          id=$(echo '${{ steps.list_disputes.outputs.result }}' | jq -r '.data[0].id // ""')
+          if [ -z "$id" ]; then
+            echo 'no dispute yet — extending wait and retrying list' >&2
+            sleep 10
+            id=$(curl -s "https://api.stripe.com/v1/disputes?limit=1" \
+              -u "${STRIPE_API_KEY}:" | jq -r '.data[0].id // ""')
+          fi
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+        env:
+          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+
+      - name: Get the dispute
+        uses: w3-io/w3-stripe-action@v0
+        with:
+          command: get-dispute
+          api-key: ${{ secrets.STRIPE_API_KEY }}
+          dispute-id: ${{ steps.dispute.outputs.id }}
 
       # ── Events ─────────────────────────────────────────────────────────────
 
@@ -343,7 +442,7 @@ jobs:
         with:
           command: list-events
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
       - name: Extract first event ID
         id: event
