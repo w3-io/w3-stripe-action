@@ -36,7 +36,7 @@ jobs:
         with:
           command: list-customers
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
       - name: Get the created customer
         uses: w3-io/w3-stripe-action@v0
@@ -69,7 +69,7 @@ jobs:
         with:
           command: list-products
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
       - name: Get the created product
         uses: w3-io/w3-stripe-action@v0
@@ -85,7 +85,7 @@ jobs:
           command: create-price
           api-key: ${{ secrets.STRIPE_API_KEY }}
           product-id: ${{ fromJSON(steps.create_product.outputs.result).id }}
-          unit-amount: "2500"
+          unit-amount: '2500'
           currency: usd
 
       - name: Create a recurring price
@@ -95,7 +95,7 @@ jobs:
           command: create-price
           api-key: ${{ secrets.STRIPE_API_KEY }}
           product-id: ${{ fromJSON(steps.create_product.outputs.result).id }}
-          unit-amount: "999"
+          unit-amount: '999'
           currency: usd
           recurring-interval: month
 
@@ -104,7 +104,7 @@ jobs:
         with:
           command: list-prices
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
       - name: Get the one-time price
         uses: w3-io/w3-stripe-action@v0
@@ -171,7 +171,7 @@ jobs:
         with:
           command: list-refunds
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
       # ── Payments (simple create, get, list, cancel) ────────────────────────
 
@@ -181,7 +181,7 @@ jobs:
         with:
           command: create-payment
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          amount: "3000"
+          amount: '3000'
           currency: usd
           customer-id: ${{ fromJSON(steps.create_customer.outputs.result).id }}
           description: E2E test payment for cancel
@@ -198,7 +198,7 @@ jobs:
         with:
           command: list-payments
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
       - name: Cancel the payment intent
         uses: w3-io/w3-stripe-action@v0
@@ -237,7 +237,7 @@ jobs:
         with:
           command: list-invoices
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
       # ── Subscriptions (create -> list -> get -> cancel) ────────────────────
       # Uses a test payment method (pm_card_visa) attached inline via
@@ -304,7 +304,7 @@ jobs:
         with:
           command: list-balance-transactions
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
       # ── Payouts & Transfers — need available balance ───────────────────────
       # Seed the platform's AVAILABLE balance with tok_bypassPending so both
@@ -442,7 +442,7 @@ jobs:
         with:
           command: list-events
           api-key: ${{ secrets.STRIPE_API_KEY }}
-          limit: "5"
+          limit: '5'
 
       - name: Extract first event ID
         id: event

@@ -8,10 +8,10 @@ The env var names below are what this repo's own E2E workflow reads.
 In your own workflows, name secrets however you like — the fixed
 contract is the action-input names (`api-key`, `customer-id`, etc.).
 
-| Credential             | Env var                       | Source                                                              |
-| ---------------------- | ----------------------------- | ------------------------------------------------------------------- |
-| Stripe API key (test)  | `STRIPE_API_KEY`              | https://dashboard.stripe.com/test/apikeys (starts `sk_test_`)       |
-| Test Connect account   | `STRIPE_CONNECT_ACCOUNT_ID`   | https://dashboard.stripe.com/test/connect/accounts → create account |
+| Credential            | Env var                     | Source                                                              |
+| --------------------- | --------------------------- | ------------------------------------------------------------------- |
+| Stripe API key (test) | `STRIPE_API_KEY`            | https://dashboard.stripe.com/test/apikeys (starts `sk_test_`)       |
+| Test Connect account  | `STRIPE_CONNECT_ACCOUNT_ID` | https://dashboard.stripe.com/test/connect/accounts → create account |
 
 ### One-time Dashboard setup
 
