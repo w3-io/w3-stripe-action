@@ -3,6 +3,19 @@ partner: stripe
 name: Stripe
 version: 1.0.0
 repo: w3-io/w3-stripe-action
+description: >-
+  Payment processing for 135+ currencies via Stripe. Card payments, ACH,
+  SEPA, wire, and 40+ local payment methods. PCI-compliant — card numbers
+  never touch your workflow. Supports payment intents, subscriptions,
+  invoicing, payouts, refunds, and disputes.
+context: >-
+  Use Stripe when the workflow needs to collect payment from end users via
+  cards, bank transfers, or local payment methods. For B2B payouts, consider
+  PayPal. For crypto settlements, use the bridge directly. Pay-per-transaction
+  (2.9% + $0.30 per card). No per-API-call cost. Write operations
+  (create-payment, create-refund) are irreversible after settlement. Requires
+  Stripe API key (test keys start with sk_test_). Typical: create-payment →
+  confirm → get-payment.
 commands:
   # -- Payments ----------------------------------------------------------------
 
@@ -10,7 +23,7 @@ commands:
     description: Create a payment intent. Returns a client secret for confirmation.
     inputs:
       amount:
-        type: number
+        type: string
         required: true
         description: Amount in cents (1000 = $10.00)
       currency:
@@ -67,7 +80,7 @@ commands:
         type: string
         required: true
       amount:
-        type: number
+        type: string
         required: false
         description: Partial capture amount in cents
     outputs:
@@ -93,7 +106,7 @@ commands:
         type: string
         required: false
       limit:
-        type: number
+        type: string
         required: false
     outputs:
       result:
@@ -174,7 +187,7 @@ commands:
         type: string
         required: false
       limit:
-        type: number
+        type: string
         required: false
     outputs:
       result:
@@ -199,7 +212,7 @@ commands:
         required: false
         description: 'Filter by type: charge, refund, payout, transfer, etc.'
       limit:
-        type: number
+        type: string
         required: false
     outputs:
       result:
@@ -237,10 +250,10 @@ commands:
         description: '{id, name, description, default_price}'
 
   - name: list-products
-    description: List products.
+    description: List all products in your Stripe catalog. Use to browse available items before creating prices.
     inputs:
       limit:
-        type: number
+        type: string
         required: false
     outputs:
       result:
@@ -256,7 +269,7 @@ commands:
         type: string
         required: true
       unit-amount:
-        type: number
+        type: string
         required: true
         description: Price per unit in cents
       currency:
@@ -289,7 +302,7 @@ commands:
         type: string
         required: false
       limit:
-        type: number
+        type: string
         required: false
     outputs:
       result:
@@ -348,7 +361,7 @@ commands:
         required: false
         description: 'Filter: active, canceled, past_due, etc.'
       limit:
-        type: number
+        type: string
         required: false
     outputs:
       result:
@@ -407,7 +420,7 @@ commands:
         required: false
         description: 'Filter: draft, open, paid, void, uncollectible'
       limit:
-        type: number
+        type: string
         required: false
     outputs:
       result:
@@ -423,7 +436,7 @@ commands:
         type: string
         required: true
       amount:
-        type: number
+        type: string
         required: false
         description: Partial refund in cents (omit for full)
       reason:
@@ -453,7 +466,7 @@ commands:
         type: string
         required: false
       limit:
-        type: number
+        type: string
         required: false
     outputs:
       result:
@@ -466,7 +479,7 @@ commands:
     description: Send funds to your bank account or debit card.
     inputs:
       amount:
-        type: number
+        type: string
         required: true
       currency:
         type: string
@@ -508,7 +521,7 @@ commands:
         type: string
         required: false
       limit:
-        type: number
+        type: string
         required: false
     outputs:
       result:
@@ -521,7 +534,7 @@ commands:
     description: Transfer funds to a connected Stripe account.
     inputs:
       amount:
-        type: number
+        type: string
         required: true
       currency:
         type: string
@@ -556,7 +569,7 @@ commands:
         type: string
         required: false
       limit:
-        type: number
+        type: string
         required: false
     outputs:
       result:
@@ -569,7 +582,7 @@ commands:
     description: Create a direct charge via the legacy /v1/charges endpoint.
     inputs:
       amount:
-        type: number
+        type: string
         required: true
         description: Amount in cents (1000 = $10.00)
       currency:
@@ -597,7 +610,7 @@ commands:
     description: Create a disputed payment using Stripe test tokens. Test mode only.
     inputs:
       amount:
-        type: number
+        type: string
         required: false
         description: 'Amount in cents (default: 1000)'
       currency:
@@ -629,7 +642,7 @@ commands:
         type: string
         required: false
       limit:
-        type: number
+        type: string
         required: false
     outputs:
       result:
@@ -657,7 +670,7 @@ commands:
         required: false
         description: 'Filter by type (e.g. payment_intent.succeeded)'
       limit:
-        type: number
+        type: string
         required: false
     outputs:
       result:
