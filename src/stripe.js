@@ -363,6 +363,49 @@ export class StripeClient {
   }
 
   // ---------------------------------------------------------------------------
+  // Charges (legacy)
+  // ---------------------------------------------------------------------------
+
+  async createCharge({ amount, currency = 'usd', source, description, metadata }) {
+    if (amount == null) throw new StripeError('amount is required', { code: 'MISSING_AMOUNT' })
+    if (!source) throw new StripeError('source is required', { code: 'MISSING_SOURCE' })
+    const params = { amount: String(amount), currency, source }
+    if (description) params.description = description
+    StripeClient.applyMetadata(params, metadata)
+    return this.request('POST', '/v1/charges', params)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Test helpers
+  // ---------------------------------------------------------------------------
+
+  async createTestDispute({ amount = 1000, currency = 'usd' } = {}) {
+    // Create a PaymentIntent with the test dispute card and confirm immediately.
+    const params = {
+      amount: String(amount),
+      currency,
+      payment_method: 'pm_card_createDispute',
+      confirm: 'true',
+    }
+    const pi = await this.request('POST', '/v1/payment_intents', params)
+
+    // Stripe generates the dispute asynchronously. Poll for it.
+    for (let i = 0; i < 10; i++) {
+      const disputes = await this.request(
+        'GET',
+        `/v1/disputes?payment_intent=${encodeURIComponent(pi.id)}&limit=1`,
+      )
+      if (disputes.data && disputes.data.length > 0) {
+        return { payment_intent: pi, dispute: disputes.data[0] }
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+    }
+
+    // Return the PI even if the dispute hasn't appeared yet
+    return { payment_intent: pi, dispute: null }
+  }
+
+  // ---------------------------------------------------------------------------
   // Disputes
   // ---------------------------------------------------------------------------
 

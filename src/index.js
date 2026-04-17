@@ -348,6 +348,33 @@ const router = createCommandRouter({
     )
   },
 
+  // Charges (legacy)
+  'create-charge': async () => {
+    const client = createClient()
+    setJsonOutput(
+      'result',
+      await client.createCharge({
+        amount: core.getInput('amount', { required: true }),
+        currency: optionalInput('currency'),
+        source: core.getInput('source', { required: true }),
+        description: optionalInput('description'),
+        metadata: optionalJson('metadata'),
+      }),
+    )
+  },
+
+  // Test helpers
+  'create-test-dispute': async () => {
+    const client = createClient()
+    setJsonOutput(
+      'result',
+      await client.createTestDispute({
+        amount: optionalNumber('amount') || 1000,
+        currency: optionalInput('currency') || 'usd',
+      }),
+    )
+  },
+
   // Disputes
   'get-dispute': async () => {
     const client = createClient()

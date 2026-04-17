@@ -40,6 +40,8 @@ actions:
     create-transfer,
     get-transfer,
     list-transfers,
+    create-charge,
+    create-test-dispute,
     get-dispute,
     list-disputes,
     get-event,
@@ -530,6 +532,65 @@ Transfer funds to a connected Stripe account (for marketplaces).
 | `destination` | no       | Filter by connected acct  |
 | `limit`       | no       | Max results (default: 10) |
 
+## Charge commands (legacy)
+
+### create-charge
+
+Create a direct charge via the legacy `/v1/charges` endpoint. Useful for
+seeding test-mode balances or workflows that require a token-based charge.
+
+| Input         | Required | Description                           |
+| ------------- | -------- | ------------------------------------- |
+| `amount`      | yes      | Amount in cents (1000 = $10.00)       |
+| `currency`    | no       | ISO currency code (default: usd)      |
+| `source`      | yes      | Token or source (tok\_... / src\_...) |
+| `description` | no       | Charge description                    |
+| `metadata`    | no       | JSON key-value metadata               |
+
+**Output (`result`):**
+
+```json
+{
+  "id": "ch_abc123",
+  "amount": 1000,
+  "currency": "usd",
+  "status": "succeeded",
+  "source": { "id": "tok_visa" }
+}
+```
+
+## Test helper commands
+
+### create-test-dispute
+
+Create a disputed payment using Stripe's test card token
+`pm_card_createDispute`. The command creates a confirmed PaymentIntent
+then polls until Stripe generates the dispute. Test mode only.
+
+| Input      | Required | Description                      |
+| ---------- | -------- | -------------------------------- |
+| `amount`   | no       | Amount in cents (default: 1000)  |
+| `currency` | no       | ISO currency code (default: usd) |
+
+**Output (`result`):**
+
+```json
+{
+  "payment_intent": { "id": "pi_abc123", "status": "succeeded" },
+  "dispute": { "id": "dp_abc123", "status": "needs_response", "amount": 1000 }
+}
+```
+
+```yaml
+- name: Create test dispute
+  id: dispute
+  uses: w3-io/w3-stripe-action@v0
+  with:
+    command: create-test-dispute
+    api-key: ${{ secrets.STRIPE_TEST_KEY }}
+    amount: '2500'
+```
+
 ## Subscription workflow example
 
 ```yaml
@@ -592,9 +653,69 @@ Transfer funds to a connected Stripe account (for marketplaces).
     payment-id: ${{ fromJSON(steps.payment.outputs.result).id }}
 ```
 
+## Stripe Connect and Payouts
+
+To use transfers and payouts, your Stripe account needs Connect enabled and
+a connected external bank account. Here is the typical setup pattern:
+
+### Dashboard prerequisites
+
+1. **Enable Connect** in the Stripe Dashboard under
+   [Connect settings](https://dashboard.stripe.com/settings/connect).
+2. **Add an external bank account** under
+   [Payouts > Bank accounts](https://dashboard.stripe.com/settings/payouts).
+   In test mode, use Stripe's test bank token `000123456789` with routing
+   number `110000000`.
+3. **Seed a test balance** so there are funds available to transfer or pay
+   out. The `create-charge` command is handy for this:
+
+```yaml
+- name: Seed balance
+  uses: w3-io/w3-stripe-action@v0
+  with:
+    command: create-charge
+    api-key: ${{ secrets.STRIPE_TEST_KEY }}
+    amount: '100000'
+    source: 'tok_bypassPending'
+```
+
+### Transfer to a connected account
+
+```yaml
+- name: Transfer to vendor
+  uses: w3-io/w3-stripe-action@v0
+  with:
+    command: create-transfer
+    api-key: ${{ secrets.STRIPE_TEST_KEY }}
+    amount: '5000'
+    destination: 'acct_connected123'
+    description: 'March payout'
+```
+
+### Payout to your bank
+
+```yaml
+- name: Payout to bank
+  uses: w3-io/w3-stripe-action@v0
+  with:
+    command: create-payout
+    api-key: ${{ secrets.STRIPE_TEST_KEY }}
+    amount: '50000'
+    description: 'Weekly settlement'
+```
+
+### Test-mode considerations
+
+- Test payouts transition through statuses faster than live mode. The
+  `cancel-payout` command may not catch a payout before it completes.
+- Use `tok_bypassPending` to seed available (not pending) balance
+  immediately.
+- Connected accounts in test mode can be created via the Stripe Dashboard
+  or API; this action exposes transfers but not account creation.
+
 ## Beyond this W3 integration
 
-This action covers Stripe's core platform with 41 commands. Stripe
+This action covers Stripe's core platform with 43 commands. Stripe
 capabilities not exposed here:
 
 | Layer           | What                                                                                                 | Status              |
