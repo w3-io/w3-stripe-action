@@ -367,6 +367,356 @@ describe('StripeClient: events', () => {
   })
 })
 
+describe('StripeClient: customers (validation)', () => {
+  it('getCustomer', async () => {
+    mockFetch([{ body: { id: 'cus_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.getCustomer('cus_1')
+    assert.match(calls[0].url, /\/v1\/customers\/cus_1/)
+  })
+
+  it('getCustomer throws without id', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.getCustomer(''), /customer-id is required/)
+  })
+
+  it('updateCustomer throws without id', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.updateCustomer('', { name: 'x' }), /customer-id is required/)
+  })
+
+  it('deleteCustomer throws without id', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.deleteCustomer(''), /customer-id is required/)
+  })
+})
+
+describe('StripeClient: products (extra)', () => {
+  it('listProducts', async () => {
+    mockFetch([{ body: { data: [] } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.listProducts({ limit: 5 })
+    assert.match(calls[0].url, /\/v1\/products\?/)
+    assert.match(calls[0].url, /limit=5/)
+  })
+
+  it('getProduct throws without id', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.getProduct(''), /product-id is required/)
+  })
+})
+
+describe('StripeClient: prices (extra)', () => {
+  it('getPrice', async () => {
+    mockFetch([{ body: { id: 'price_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.getPrice('price_1')
+    assert.match(calls[0].url, /\/v1\/prices\/price_1/)
+  })
+
+  it('getPrice throws without id', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.getPrice(''), /price-id is required/)
+  })
+
+  it('createPrice throws without unitAmount', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.createPrice({ product: 'prod_1' }), /unit-amount is required/)
+  })
+
+  it('listPrices', async () => {
+    mockFetch([{ body: { data: [] } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.listPrices({ product: 'prod_1' })
+    assert.match(calls[0].url, /\/v1\/prices\?/)
+    assert.match(calls[0].url, /product=prod_1/)
+  })
+})
+
+describe('StripeClient: subscriptions (extra)', () => {
+  it('getSubscription', async () => {
+    mockFetch([{ body: { id: 'sub_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.getSubscription('sub_1')
+    assert.match(calls[0].url, /\/v1\/subscriptions\/sub_1/)
+  })
+
+  it('getSubscription throws without id', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.getSubscription(''), /subscription-id is required/)
+  })
+
+  it('cancelSubscription throws without id', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.cancelSubscription(''), /subscription-id is required/)
+  })
+
+  it('createSubscription throws without price', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.createSubscription({ customer: 'cus_1' }), /price-id is required/)
+  })
+
+  it('createSubscription with defaultPaymentMethod', async () => {
+    mockFetch([{ body: { id: 'sub_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.createSubscription({
+      customer: 'cus_1',
+      price: 'price_1',
+      defaultPaymentMethod: 'pm_1',
+    })
+    assert.match(calls[0].options.body, /default_payment_method=pm_1/)
+  })
+})
+
+describe('StripeClient: invoices (extra)', () => {
+  it('getInvoice', async () => {
+    mockFetch([{ body: { id: 'in_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.getInvoice('in_1')
+    assert.match(calls[0].url, /\/v1\/invoices\/in_1/)
+  })
+
+  it('getInvoice throws without id', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.getInvoice(''), /invoice-id is required/)
+  })
+
+  it('payInvoice throws without id', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.payInvoice(''), /invoice-id is required/)
+  })
+
+  it('createInvoice throws without customer', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.createInvoice({}), /customer-id is required/)
+  })
+
+  it('createInvoice with description and metadata', async () => {
+    mockFetch([{ body: { id: 'in_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.createInvoice({ customer: 'cus_1', description: 'Test', metadata: { k: 'v' } })
+    assert.match(calls[0].options.body, /description=Test/)
+    assert.match(calls[0].options.body, /metadata%5Bk%5D=v/)
+  })
+})
+
+describe('StripeClient: refunds (extra)', () => {
+  it('getRefund', async () => {
+    mockFetch([{ body: { id: 're_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.getRefund('re_1')
+    assert.match(calls[0].url, /\/v1\/refunds\/re_1/)
+  })
+
+  it('getRefund throws without id', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.getRefund(''), /refund-id is required/)
+  })
+
+  it('createRefund throws without paymentIntent', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.createRefund({}), /payment-id is required/)
+  })
+
+  it('createRefund with amount and reason', async () => {
+    mockFetch([{ body: { id: 're_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.createRefund({ paymentIntent: 'pi_1', amount: 500, reason: 'duplicate' })
+    assert.match(calls[0].options.body, /amount=500/)
+    assert.match(calls[0].options.body, /reason=duplicate/)
+  })
+})
+
+describe('StripeClient: payouts (extra)', () => {
+  it('createPayout', async () => {
+    mockFetch([{ body: { id: 'po_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.createPayout({ amount: 5000, description: 'Weekly' })
+    assert.match(calls[0].options.body, /amount=5000/)
+    assert.match(calls[0].options.body, /description=Weekly/)
+  })
+
+  it('createPayout throws without amount', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.createPayout({}), /amount is required/)
+  })
+
+  it('getPayout', async () => {
+    mockFetch([{ body: { id: 'po_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.getPayout('po_1')
+    assert.match(calls[0].url, /\/v1\/payouts\/po_1/)
+  })
+
+  it('getPayout throws without id', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.getPayout(''), /payout-id is required/)
+  })
+
+  it('cancelPayout throws without id', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.cancelPayout(''), /payout-id is required/)
+  })
+})
+
+describe('StripeClient: transfers (extra)', () => {
+  it('getTransfer', async () => {
+    mockFetch([{ body: { id: 'tr_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.getTransfer('tr_1')
+    assert.match(calls[0].url, /\/v1\/transfers\/tr_1/)
+  })
+
+  it('getTransfer throws without id', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.getTransfer(''), /transfer-id is required/)
+  })
+
+  it('createTransfer throws without amount', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.createTransfer({ destination: 'acct_1' }), /amount is required/)
+  })
+
+  it('createTransfer with description', async () => {
+    mockFetch([{ body: { id: 'tr_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.createTransfer({ amount: 1000, destination: 'acct_1', description: 'Payout' })
+    assert.match(calls[0].options.body, /description=Payout/)
+  })
+})
+
+describe('StripeClient: charges', () => {
+  it('createCharge', async () => {
+    mockFetch([{ body: { id: 'ch_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.createCharge({
+      amount: 2000,
+      source: 'tok_visa',
+      description: 'Test',
+      metadata: { order: '123' },
+    })
+    const body = calls[0].options.body
+    assert.match(body, /amount=2000/)
+    assert.match(body, /source=tok_visa/)
+    assert.match(body, /description=Test/)
+    assert.match(body, /metadata%5Border%5D=123/)
+  })
+
+  it('createCharge throws without amount', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.createCharge({ source: 'tok_visa' }), /amount is required/)
+  })
+
+  it('createCharge throws without source', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.createCharge({ amount: 100 }), /source is required/)
+  })
+})
+
+describe('StripeClient: createTestDispute', () => {
+  it('creates dispute and polls', async () => {
+    mockFetch([
+      { body: { id: 'pi_test' } },
+      { body: { data: [{ id: 'dp_1', status: 'needs_response' }] } },
+    ])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    const result = await c.createTestDispute()
+    assert.equal(result.payment_intent.id, 'pi_test')
+    assert.equal(result.dispute.id, 'dp_1')
+  })
+
+  it('returns null dispute after polling timeout', async () => {
+    const responses = [{ body: { id: 'pi_test' } }]
+    // 10 polling attempts with empty results
+    for (let i = 0; i < 10; i++) {
+      responses.push({ body: { data: [] } })
+    }
+    mockFetch(responses)
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    const result = await c.createTestDispute({ amount: 500, currency: 'eur' })
+    assert.equal(result.payment_intent.id, 'pi_test')
+    assert.equal(result.dispute, null)
+  })
+})
+
+describe('StripeClient: crypto onramp', () => {
+  it('createOnrampSession with all params', async () => {
+    mockFetch([{ body: { id: 'cos_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.createOnrampSession({
+      walletAddresses: { ethereum: '0xabc' },
+      lockWalletAddress: true,
+      sourceCurrency: 'usd',
+      sourceAmount: '100',
+      destinationCurrency: 'eth',
+      destinationNetwork: 'ethereum',
+      destinationAmount: '0.05',
+      destinationCurrencies: ['eth', 'usdc'],
+      destinationNetworks: ['ethereum', 'polygon'],
+      customerEmail: 'a@b.com',
+      customerIpAddress: '1.2.3.4',
+    })
+    const body = calls[0].options.body
+    assert.match(body, /wallet_addresses%5Bethereum%5D=0xabc/)
+    assert.match(body, /lock_wallet_address=true/)
+    assert.match(body, /source_currency=usd/)
+    assert.match(body, /source_amount=100/)
+    assert.match(body, /destination_currency=eth/)
+    assert.match(body, /destination_network=ethereum/)
+    assert.match(body, /destination_amount=0.05/)
+    assert.match(body, /destination_currencies%5B0%5D=eth/)
+    assert.match(body, /destination_currencies%5B1%5D=usdc/)
+    assert.match(body, /destination_networks%5B0%5D=ethereum/)
+    assert.match(body, /destination_networks%5B1%5D=polygon/)
+    assert.match(body, /customer_information%5Bemail%5D=a%40b.com/)
+    assert.match(body, /customer_ip_address=1.2.3.4/)
+  })
+
+  it('createOnrampSession with minimal params', async () => {
+    mockFetch([{ body: { id: 'cos_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.createOnrampSession({})
+    assert.match(calls[0].url, /\/v1\/crypto\/onramp_sessions/)
+  })
+
+  it('getOnrampSession', async () => {
+    mockFetch([{ body: { id: 'cos_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.getOnrampSession('cos_1')
+    assert.match(calls[0].url, /\/v1\/crypto\/onramp_sessions\/cos_1/)
+  })
+
+  it('getOnrampSession throws without id', async () => {
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(() => c.getOnrampSession(''), /session-id is required/)
+  })
+
+  it('getOnrampQuotes with all params', async () => {
+    mockFetch([{ body: { quotes: [] } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.getOnrampQuotes({
+      sourceCurrency: 'eur',
+      sourceAmount: '50',
+      destinationAmount: '0.01',
+      destinationCurrencies: ['btc'],
+      destinationNetworks: ['bitcoin'],
+    })
+    const url = calls[0].url
+    assert.match(url, /source_currency=eur/)
+    assert.match(url, /source_amount=50/)
+    assert.match(url, /destination_amount=0.01/)
+    assert.match(url, /destination_currencies%5B0%5D=btc/)
+    assert.match(url, /destination_networks%5B0%5D=bitcoin/)
+  })
+
+  it('getOnrampQuotes with defaults', async () => {
+    mockFetch([{ body: { quotes: [] } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.getOnrampQuotes()
+    assert.match(calls[0].url, /source_currency=usd/)
+  })
+})
+
 describe('StripeClient: errors', () => {
   it('parses Stripe error (no retry on 4xx)', async () => {
     mockFetch([
@@ -449,5 +799,45 @@ describe('StripeClient: errors', () => {
     await c.getBalance()
 
     assert.equal(calls[0].options.headers['Idempotency-Key'], undefined)
+  })
+
+  it('throws on invalid JSON response', async () => {
+    mockFetch([{ status: 200, body: 'not json {{{' }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(
+      () => c.getBalance(),
+      (err) => err instanceof StripeError && err.code === 'PARSE_ERROR',
+    )
+  })
+
+  it('returns empty object for empty response body', async () => {
+    mockFetch([{ status: 200, body: '' }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    const result = await c.getBalance()
+    assert.deepEqual(result, {})
+  })
+
+  it('parses error without structured error body', async () => {
+    mockFetch([{ status: 403, body: 'plain text error' }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await assert.rejects(
+      () => c.getBalance(),
+      (err) => err instanceof StripeError && err.code === 'API_ERROR' && err.status === 403,
+    )
+  })
+
+  it('capturePayment with amountToCapture', async () => {
+    mockFetch([{ body: { id: 'pi_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.capturePayment('pi_1', { amountToCapture: 500 })
+    assert.match(calls[0].options.body, /amount_to_capture=500/)
+  })
+
+  it('confirmPayment without paymentMethod', async () => {
+    mockFetch([{ body: { id: 'pi_1' } }])
+    const c = new StripeClient({ apiKey: 'sk_test_abc' })
+    await c.confirmPayment('pi_1')
+    // No body params for confirm without payment method
+    assert.match(calls[0].url, /\/confirm/)
   })
 })
